@@ -17,10 +17,14 @@ A Terraform provider for [Apache Gravitino](https://gravitino.apache.org/), buil
 | View                  | `gravitino_view`     | (implemented)                |
 | Model                 | `gravitino_model`    | (implemented)                |
 | Function              | `gravitino_function` | (implemented)                |
-| Partition             | `gravitino_partition`| (implemented)                |
-| Tag                   | `gravitino_tag`      | (implemented)                |
-| Policy                | `gravitino_policy`   | (implemented)                |
-| Job                   | `gravitino_job`      | (implemented)                |
+| Partition             | `gravitino_partition`| `metalake.catalog.schema.tb.pt` |
+| Tag                   | `gravitino_tag`      | `metalake.tag`                 |
+| Policy                | `gravitino_policy`   | `metalake.{obj}.policy`        |
+| Job                   | `gravitino_job`      | `metalake.job`                 |
+| User                  | `gravitino_user`     | `metalake.user`                |
+| Group                 | `gravitino_group`    | `metalake.group`               |
+| Role                  | `gravitino_role`     | `metalake.role`                |
+| Owner                 | `gravitino_owner`    | `metalake.{obj}`               |
 
 All resources also have corresponding data sources (list + get) and documentation under `docs/`.
 
@@ -48,15 +52,53 @@ internal/
 
 ## Conventions
 
+### Quick Reference
+
+**Error handling (mandatory):**
+
+```go
+resp.Diagnostics.Append(client.NewResourceError("creating catalog", name, err)...)
+```
+
+**404 check (mandatory):**
+
+```go
+if client.IsNotFoundError(err) {
+    resp.State.RemoveResource(ctx)
+    return
+}
+```
+
+**Logging (mandatory):**
+
+```go
+tflog.Debug(ctx, "Creating catalog", map[string]interface{}{"metalake": m, "name": n})
+tflog.Debug(ctx, "Created catalog", map[string]interface{}{"metalake": m, "name": n})
+```
+
+**Never:**
+- `resp.Diagnostics.AddError("msg", err.Error())` directly
+- `strings.Contains(err.Error(), "404")` — use `client.IsNotFoundError(err)`
+- `fmt.Println` / `println` / `log.Printf` in resources
+
 ### Patterns
 - **ID format**: dot-separated hierarchy (`metalake`, `metalake.catalog`, etc.)
 - **"id" attribute**: Always `Computed: true` with `stringplanmodifier.UseStateForUnknown()`
 - **Audit**: `types.Object` with `AuditAttrTypes` (creator, create_time, last_modifier, last_modified_time)
 - **Properties**: `types.Map` with `ElementType: types.StringType`
 - **Update pattern**: Compare plan vs state for name/comment/properties, build `[]interface{}` update requests
-- **404 handling**: Remove resource from state on 404/Not Found (except metalake)
+- **404 handling**: `client.IsNotFoundError(err)` → `resp.State.RemoveResource(ctx)` (all resources)
 - **Configure**: Casts `req.ProviderData` to `*client.Client`
 - **Tests**: Use `httptest.NewServer` with custom handlers; test schema, create, delete, import
+
+### Checklist for New Resources
+
+- [ ] Error handling via `client.NewResourceError`
+- [ ] 404 via `client.IsNotFoundError`
+- [ ] tflog.Debug at start/end of Create/Read/Update/Delete
+- [ ] Import with dot-separated ID parsing (valid + invalid test)
+- [ ] Unit tests: schema, create, delete, import
+- [ ] Resource registered in `internal/provider/provider.go`
 
 ### Commands
 - **Build**: `go build ./...`
