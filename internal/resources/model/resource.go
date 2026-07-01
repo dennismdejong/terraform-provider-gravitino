@@ -139,7 +139,7 @@ func (r *ModelResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	modelResp, err := r.client.CreateModel(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create model", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating model", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -160,11 +160,11 @@ func (r *ModelResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	modelResp, err := r.client.GetModel(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read model", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading model", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -219,14 +219,14 @@ func (r *ModelResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if len(updates) > 0 {
 		modelResp, err := r.client.UpdateModel(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update model", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating model", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readModelToState(ctx, modelResp, &plan, &resp.Diagnostics)
 	} else {
 		modelResp, err := r.client.GetModel(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read model after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading model after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readModelToState(ctx, modelResp, &plan, &resp.Diagnostics)
@@ -244,7 +244,7 @@ func (r *ModelResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 
 	_, err := r.client.DropModel(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete model", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting model", state.Name.ValueString(), err)...)
 		return
 	}
 }

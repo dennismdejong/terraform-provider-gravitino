@@ -139,7 +139,7 @@ func (r *ViewResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	viewResp, err := r.client.CreateView(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create view", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating view", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -160,11 +160,11 @@ func (r *ViewResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	viewResp, err := r.client.GetView(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read view", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading view", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -219,14 +219,14 @@ func (r *ViewResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if len(updates) > 0 {
 		viewResp, err := r.client.UpdateView(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update view", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating view", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readViewToState(ctx, viewResp, &plan, &resp.Diagnostics)
 	} else {
 		viewResp, err := r.client.GetView(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read view after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading view after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readViewToState(ctx, viewResp, &plan, &resp.Diagnostics)
@@ -244,7 +244,7 @@ func (r *ViewResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	_, err := r.client.DropView(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete view", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting view", state.Name.ValueString(), err)...)
 		return
 	}
 }

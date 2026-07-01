@@ -133,7 +133,7 @@ func (r *TopicResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 	topicResp, err := r.client.CreateTopic(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create topic", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating topic", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -154,11 +154,11 @@ func (r *TopicResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	topicResp, err := r.client.GetTopic(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read topic", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading topic", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -213,14 +213,14 @@ func (r *TopicResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if len(updates) > 0 {
 		topicResp, err := r.client.UpdateTopic(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update topic", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating topic", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readTopicToState(ctx, topicResp, &plan, &resp.Diagnostics)
 	} else {
 		topicResp, err := r.client.GetTopic(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read topic after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading topic after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readTopicToState(ctx, topicResp, &plan, &resp.Diagnostics)
@@ -238,7 +238,7 @@ func (r *TopicResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 
 	_, err := r.client.DropTopic(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete topic", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting topic", state.Name.ValueString(), err)...)
 		return
 	}
 }

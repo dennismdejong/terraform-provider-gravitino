@@ -135,7 +135,7 @@ func (r *FunctionResource) Create(ctx context.Context, req resource.CreateReques
 
 	functionResp, err := r.client.CreateFunction(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create function", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating function", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -156,11 +156,11 @@ func (r *FunctionResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	functionResp, err := r.client.GetFunction(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read function", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading function", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -215,14 +215,14 @@ func (r *FunctionResource) Update(ctx context.Context, req resource.UpdateReques
 	if len(updates) > 0 {
 		functionResp, err := r.client.UpdateFunction(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update function", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating function", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readFunctionToState(ctx, functionResp, &plan, &resp.Diagnostics)
 	} else {
 		functionResp, err := r.client.GetFunction(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read function after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading function after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readFunctionToState(ctx, functionResp, &plan, &resp.Diagnostics)
@@ -240,7 +240,7 @@ func (r *FunctionResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	_, err := r.client.DropFunction(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), false)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete function", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting function", state.Name.ValueString(), err)...)
 		return
 	}
 }
