@@ -127,5 +127,10 @@ func setDataSourceStateFromCatalog(_ context.Context, diags *diag.Diagnostics, c
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(context.TODO(), catalog.Audit)
+	auditObj, d := auditToObjectValueForDS(context.TODO(), catalog.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }

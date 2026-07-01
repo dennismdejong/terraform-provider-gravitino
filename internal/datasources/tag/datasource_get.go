@@ -115,5 +115,10 @@ func setDataSourceStateFromTag(_ context.Context, diags *diag.Diagnostics, tag *
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(context.TODO(), tag.Audit)
+	auditObj, d := auditToObjectValueForDS(context.TODO(), tag.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }

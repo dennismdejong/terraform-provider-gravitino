@@ -127,5 +127,10 @@ func setDataSourceStateFromJob(ctx context.Context, diags *diag.Diagnostics, job
 	}
 	model.Parameters = props
 
-	model.Audit = auditToObjectValueForDS(ctx, job.Audit)
+	auditObj, d := auditToObjectValueForDS(ctx, job.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }

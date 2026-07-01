@@ -116,5 +116,10 @@ func setDataSourceStateFromUser(ctx context.Context, diags *diag.Diagnostics, us
 	}
 	model.Roles = roles
 
-	model.Audit = auditToObjectValueForDS(ctx, user.Audit)
+	auditObj, d := auditToObjectValueForDS(ctx, user.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }

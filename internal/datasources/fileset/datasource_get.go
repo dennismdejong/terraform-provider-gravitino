@@ -137,5 +137,10 @@ func setDataSourceStateFromFileset(_ context.Context, diags *diag.Diagnostics, f
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(context.TODO(), fileset.Audit)
+	auditObj, d := auditToObjectValueForDS(context.TODO(), fileset.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ datasource.DataSource = &RoleDataSource{}
@@ -178,7 +179,12 @@ func setDataSourceStateFromRole(ctx context.Context, diags *diag.Diagnostics, ro
 	}
 	model.SecurableObjects = secObjs
 
-	model.Audit = auditToObjectValueForDS(ctx, role.Audit)
+	auditObj, d := auditToObjectValueForDS(ctx, role.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return
+	}
+	model.Audit = auditObj
 }
 
 func securableObjectsToTFForDS(ctx context.Context, objects []models.SecurableObject) (types.List, diag.Diagnostics) {
@@ -229,9 +235,9 @@ func securableObjectsToTFForDS(ctx context.Context, objects []models.SecurableOb
 	return types.ListValue(types.ObjectType{AttrTypes: RoleSecurableObjectAttrTypes}, items)
 }
 
-func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Object {
+func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) (basetypes.ObjectValue, diag.Diagnostics) {
 	if audit == nil {
-		return types.ObjectNull(RoleAuditAttrTypes)
+		return types.ObjectNull(RoleAuditAttrTypes), nil
 	}
 
 	creator := types.StringValue(audit.Creator)
@@ -256,6 +262,5 @@ func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Obj
 		"last_modified_time": lastModifiedTime,
 	}
 
-	obj, _ := types.ObjectValue(RoleAuditAttrTypes, attrs)
-	return obj
+	return types.ObjectValue(RoleAuditAttrTypes, attrs)
 }

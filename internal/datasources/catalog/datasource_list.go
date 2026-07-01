@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ datasource.DataSource = &CatalogsDataSource{}
@@ -138,7 +140,10 @@ func (d *CatalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	items := make([]attr.Value, 0, len(result.Catalogs))
 	for _, catalog := range result.Catalogs {
 		cat := catalog
-		item := catalogToItemModel(ctx, &cat)
+		item := catalogToItemModel(ctx, &cat, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 		if item == nil {
 			continue
 		}
@@ -160,7 +165,7 @@ func (d *CatalogsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }
 
-func catalogToItemModel(ctx context.Context, c *models.Catalog) *catalogItemModel {
+func catalogToItemModel(ctx context.Context, c *models.Catalog, diags *diag.Diagnostics) *catalogItemModel {
 	if c == nil {
 		return nil
 	}
@@ -178,14 +183,19 @@ func catalogToItemModel(ctx context.Context, c *models.Catalog) *catalogItemMode
 	}
 	item.Properties = props
 
-	item.Audit = auditToObjectValueForDS(ctx, c.Audit)
+	auditObj, d := auditToObjectValueForDS(ctx, c.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return nil
+	}
+	item.Audit = auditObj
 
 	return item
 }
 
-func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Object {
+func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) (basetypes.ObjectValue, diag.Diagnostics) {
 	if audit == nil {
-		return types.ObjectNull(AuditAttrTypes)
+		return types.ObjectNull(AuditAttrTypes), nil
 	}
 
 	creator := types.StringValue(audit.Creator)
@@ -210,6 +220,5 @@ func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Obj
 		"last_modified_time": lastModifiedTime,
 	}
 
-	obj, _ := types.ObjectValue(AuditAttrTypes, attrs)
-	return obj
+	return types.ObjectValue(AuditAttrTypes, attrs)
 }

@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ datasource.DataSource = &FilesetsDataSource{}
@@ -61,9 +63,9 @@ var AuditAttrTypes = map[string]attr.Type{
 	"last_modified_time": types.StringType,
 }
 
-func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Object {
+func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) (basetypes.ObjectValue, diag.Diagnostics) {
 	if audit == nil {
-		return types.ObjectNull(AuditAttrTypes)
+		return types.ObjectNull(AuditAttrTypes), nil
 	}
 
 	creator := types.StringValue(audit.Creator)
@@ -88,8 +90,7 @@ func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Obj
 		"last_modified_time": lastModifiedTime,
 	}
 
-	obj, _ := types.ObjectValue(AuditAttrTypes, attrs)
-	return obj
+	return types.ObjectValue(AuditAttrTypes, attrs)
 }
 
 func (d *FilesetsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -179,7 +180,10 @@ func (d *FilesetsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	items := make([]attr.Value, 0, len(result))
 	for _, fs := range result {
 		fsCopy := fs
-		item := filesetToItemModel(ctx, &fsCopy)
+		item := filesetToItemModel(ctx, &fsCopy, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 		if item == nil {
 			continue
 		}
@@ -201,7 +205,7 @@ func (d *FilesetsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }
 
-func filesetToItemModel(ctx context.Context, fs *models.Fileset) *filesetItemModel {
+func filesetToItemModel(ctx context.Context, fs *models.Fileset, diags *diag.Diagnostics) *filesetItemModel {
 	if fs == nil {
 		return nil
 	}
@@ -219,7 +223,12 @@ func filesetToItemModel(ctx context.Context, fs *models.Fileset) *filesetItemMod
 	}
 	item.Properties = props
 
-	item.Audit = auditToObjectValueForDS(ctx, fs.Audit)
+	auditObj, d := auditToObjectValueForDS(ctx, fs.Audit)
+	diags.Append(d...)
+	if diags.HasError() {
+		return nil
+	}
+	item.Audit = auditObj
 
 	return item
 }

@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 var _ datasource.DataSource = &UsersDataSource{}
@@ -92,9 +94,9 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
 }
 
-func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Object {
+func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) (basetypes.ObjectValue, diag.Diagnostics) {
 	if audit == nil {
-		return types.ObjectNull(AuditAttrTypes)
+		return types.ObjectNull(AuditAttrTypes), nil
 	}
 
 	creator := types.StringValue(audit.Creator)
@@ -119,6 +121,5 @@ func auditToObjectValueForDS(ctx context.Context, audit *models.Audit) types.Obj
 		"last_modified_time": lastModifiedTime,
 	}
 
-	obj, _ := types.ObjectValue(AuditAttrTypes, attrs)
-	return obj
+	return types.ObjectValue(AuditAttrTypes, attrs)
 }
