@@ -124,7 +124,7 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	schemaResp, err := r.client.CreateSchema(plan.Metalake.ValueString(), plan.Catalog.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create schema", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating schema", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -145,11 +145,11 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	schemaResp, err := r.client.GetSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read schema", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading schema", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -204,14 +204,14 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if len(updates) > 0 {
 		schemaResp, err := r.client.UpdateSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update schema", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating schema", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readSchemaToState(ctx, schemaResp, &plan, &resp.Diagnostics)
 	} else {
 		schemaResp, err := r.client.GetSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read schema after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading schema after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readSchemaToState(ctx, schemaResp, &plan, &resp.Diagnostics)
@@ -229,7 +229,7 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	_, err := r.client.DropSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString(), false)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete schema", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting schema", state.Name.ValueString(), err)...)
 		return
 	}
 }

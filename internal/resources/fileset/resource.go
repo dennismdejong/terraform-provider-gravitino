@@ -152,7 +152,7 @@ func (r *FilesetResource) Create(ctx context.Context, req resource.CreateRequest
 
 	result, err := r.client.CreateFileset(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create fileset", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating fileset", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -173,11 +173,11 @@ func (r *FilesetResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	result, err := r.client.GetFileset(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read fileset", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading fileset", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (r *FilesetResource) Update(ctx context.Context, req resource.UpdateRequest
 	if len(updates) > 0 {
 		result, err := r.client.UpdateFileset(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update fileset", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating fileset", state.Name.ValueString(), err)...)
 			return
 		}
 		setStateFromFileset(ctx, &resp.Diagnostics, plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), &result.Fileset, &plan)
@@ -252,7 +252,7 @@ func (r *FilesetResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	_, err := r.client.DropFileset(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete fileset", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting fileset", state.Name.ValueString(), err)...)
 		return
 	}
 }

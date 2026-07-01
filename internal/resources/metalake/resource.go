@@ -130,7 +130,7 @@ func (r *MetalakeResource) Create(ctx context.Context, req resource.CreateReques
 
 	result, err := r.client.CreateMetalake(createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create metalake", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating metalake", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -153,7 +153,7 @@ func (r *MetalakeResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	result, err := r.client.GetMetalake(state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to read metalake", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading metalake", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -211,7 +211,7 @@ func (r *MetalakeResource) Update(ctx context.Context, req resource.UpdateReques
 
 	result, err := r.client.UpdateMetalake(state.Name.ValueString(), updates)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to update metalake", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("updating metalake", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -234,7 +234,7 @@ func (r *MetalakeResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	_, err := r.client.DropMetalake(state.Name.ValueString(), true)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete metalake", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting metalake", state.Name.ValueString(), err)...)
 		return
 	}
 }

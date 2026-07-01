@@ -143,7 +143,7 @@ func (r *CatalogResource) Create(ctx context.Context, req resource.CreateRequest
 
 	result, err := r.client.CreateCatalog(plan.Metalake.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create catalog", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating catalog", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -164,11 +164,11 @@ func (r *CatalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	result, err := r.client.GetCatalog(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read catalog", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading catalog", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -219,7 +219,7 @@ func (r *CatalogResource) Update(ctx context.Context, req resource.UpdateRequest
 	if len(updates) > 0 {
 		result, err := r.client.UpdateCatalog(state.Metalake.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update catalog", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating catalog", state.Name.ValueString(), err)...)
 			return
 		}
 		setStateFromCatalog(ctx, &resp.Diagnostics, plan.Metalake.ValueString(), &result.Catalog, &plan)
@@ -243,7 +243,7 @@ func (r *CatalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	_, err := r.client.DropCatalog(state.Metalake.ValueString(), state.Name.ValueString(), true)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete catalog", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting catalog", state.Name.ValueString(), err)...)
 		return
 	}
 }
