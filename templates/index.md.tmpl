@@ -1,0 +1,23 @@
+---
+page_title: "Gravitino Provider"
+subcategory: ""
+description: |-
+  The Gravitino provider manages metadata resources in Apache Gravitino, the unified metadata lakehouse service.
+---
+
+# Gravitino Provider
+
+The Gravitino provider allows you to manage [Apache Gravitino](https://gravitino.apache.org) resources including metalakes, catalogs, schemas, tables, filesets, topics, views, functions, models, partitions, tags, policies, and jobs.
+
+## Example Usage
+
+```hcl
+provider "gravitino" {
+  uri      = "http://localhost:8090"
+  auth     = "basic"
+  username = "admin"
+  password = "admin"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}

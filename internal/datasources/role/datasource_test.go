@@ -1,0 +1,107 @@
+package role_test
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	ds "github.com/gravitino/terraform-provider-gravitino/internal/datasources/role"
+	"github.com/gravitino/terraform-provider-gravitino/internal/models"
+
+	"github.com/gravitino/terraform-provider-gravitino/internal/client"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func TestRolesDataSource_Schema(t *testing.T) {
+	d := ds.New()
+	resp := &datasource.MetadataResponse{}
+	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	if resp.TypeName != "gravitino_roles" {
+		t.Fatalf("expected gravitino_roles, got %s", resp.TypeName)
+	}
+}
+
+func TestRolesDataSource_Read(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		expectedPath := "/api/metalakes/test_metalake/catalogs/test_catalog/roles"
+		if r.URL.Path != expectedPath {
+			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
+		}
+
+		resp := models.RoleListResponse{
+			Code: 0,
+			Roles: []models.Role{
+				{
+					Name:            "admin",
+					Privileges:      []string{"CREATE_TABLE", "SELECT"},
+					SecurableObject: "catalog",
+				},
+				{
+					Name:            "viewer",
+					Privileges:      []string{"SELECT"},
+					SecurableObject: "catalog",
+				},
+			},
+		}
+		json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+
+	c, _ := client.New(server.URL, "", "", "", "")
+	d := ds.New()
+	d.(*ds.RolesDataSource).SetClient(c)
+
+	ctx := context.Background()
+	schemaResp := &datasource.SchemaResponse{}
+	d.Schema(ctx, datasource.SchemaRequest{}, schemaResp)
+	schemaObj := schemaResp.Schema
+
+	roleItemObjType := types.ObjectType{AttrTypes: ds.RoleItemAttrTypes}
+	rolesListType := types.ListType{ElemType: roleItemObjType}
+
+	attrTypes := map[string]attr.Type{
+		"metalake":      types.StringType,
+		"resource_type": types.StringType,
+		"resource":      types.StringType,
+		"roles":         rolesListType,
+	}
+
+	configModel := ds.RolesDataSourceModel{
+		Metalake:     types.StringValue("test_metalake"),
+		ResourceType: types.StringValue("catalogs"),
+		Resource:     types.StringValue("test_catalog"),
+		Roles:        types.ListNull(roleItemObjType),
+	}
+
+	configObj, diags := types.ObjectValueFrom(ctx, attrTypes, configModel)
+	if diags.HasError() {
+		t.Fatalf("failed to create config object: %v", diags)
+	}
+
+	tfVal, err := configObj.ToTerraformValue(ctx)
+	if err != nil {
+		t.Fatalf("failed to convert to terraform value: %v", err)
+	}
+
+	req := datasource.ReadRequest{
+		Config: tfsdk.Config{Schema: schemaObj, Raw: tfVal},
+	}
+	resp := &datasource.ReadResponse{
+		State: tfsdk.State{Schema: schemaObj},
+	}
+
+	d.Read(ctx, req, resp)
+
+	if resp.Diagnostics.HasError() {
+		for _, diag := range resp.Diagnostics.Errors() {
+			t.Logf("diag error: %s: %s", diag.Summary(), diag.Detail())
+		}
+		t.Fatal("unexpected diagnostics errors")
+	}
+}
