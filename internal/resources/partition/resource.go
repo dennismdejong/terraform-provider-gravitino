@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &PartitionResource{}
@@ -117,6 +118,8 @@ func (r *PartitionResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	tflog.Debug(ctx, "Creating partition", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "table": plan.Table.ValueString(), "name": plan.Name.ValueString()})
+
 	properties := make(map[string]string)
 	if !plan.Properties.IsNull() && !plan.Properties.IsUnknown() {
 		resp.Diagnostics.Append(plan.Properties.ElementsAs(ctx, &properties, false)...)
@@ -142,6 +145,8 @@ func (r *PartitionResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Debug(ctx, "Created partition", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "table": plan.Table.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *PartitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -150,6 +155,8 @@ func (r *PartitionResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading partition", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "table": state.Table.ValueString(), "name": state.Name.ValueString()})
 
 	partitionResp, err := r.client.GetPartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -176,6 +183,8 @@ func (r *PartitionResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating partition", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "table": state.Table.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -223,6 +232,8 @@ func (r *PartitionResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Debug(ctx, "Updated partition", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "table": plan.Table.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *PartitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -232,11 +243,15 @@ func (r *PartitionResource) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting partition", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "table": state.Table.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DropPartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting partition", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted partition", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "table": state.Table.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *PartitionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

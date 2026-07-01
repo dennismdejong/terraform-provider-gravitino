@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &SchemaResource{}
@@ -108,6 +109,8 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	tflog.Debug(ctx, "Creating schema", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "name": plan.Name.ValueString()})
+
 	properties := make(map[string]string)
 	if !plan.Properties.IsNull() && !plan.Properties.IsUnknown() {
 		resp.Diagnostics.Append(plan.Properties.ElementsAs(ctx, &properties, false)...)
@@ -134,6 +137,8 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Debug(ctx, "Created schema", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -142,6 +147,8 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading schema", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "name": state.Name.ValueString()})
 
 	schemaResp, err := r.client.GetSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -168,6 +175,8 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating schema", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -218,6 +227,8 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Debug(ctx, "Updated schema", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -227,11 +238,15 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting schema", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DropSchema(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Name.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting schema", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted schema", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *SchemaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

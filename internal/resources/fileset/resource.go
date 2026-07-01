@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &FilesetResource{}
@@ -142,6 +143,8 @@ func (r *FilesetResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
+	tflog.Debug(ctx, "Creating fileset", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "name": plan.Name.ValueString()})
+
 	createReq := &models.FilesetCreateRequest{
 		Name:            plan.Name.ValueString(),
 		Comment:         plan.Comment.ValueString(),
@@ -162,6 +165,8 @@ func (r *FilesetResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Created fileset", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *FilesetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -170,6 +175,8 @@ func (r *FilesetResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading fileset", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "name": state.Name.ValueString()})
 
 	result, err := r.client.GetFileset(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -196,6 +203,8 @@ func (r *FilesetResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating fileset", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -241,6 +250,8 @@ func (r *FilesetResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Updated fileset", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "catalog": plan.Catalog.ValueString(), "schema": plan.Schema.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *FilesetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -250,11 +261,15 @@ func (r *FilesetResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting fileset", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DropFileset(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting fileset", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted fileset", map[string]interface{}{"metalake": state.Metalake.ValueString(), "catalog": state.Catalog.ValueString(), "schema": state.Schema.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *FilesetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

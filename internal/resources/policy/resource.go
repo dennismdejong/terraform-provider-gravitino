@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &PolicyResource{}
@@ -153,6 +154,8 @@ func (r *PolicyResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
+	tflog.Debug(ctx, "Creating policy", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
+
 	createReq := &models.PolicyCreateRequest{
 		Name:       plan.Name.ValueString(),
 		Effect:     plan.Effect.ValueString(),
@@ -179,6 +182,8 @@ func (r *PolicyResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Created policy", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *PolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -187,6 +192,8 @@ func (r *PolicyResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	metalake := state.Metalake.ValueString()
 	resourceType := state.ResourceType.ValueString()
@@ -217,6 +224,8 @@ func (r *PolicyResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -261,6 +270,8 @@ func (r *PolicyResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Updated policy", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -269,6 +280,8 @@ func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Deleting policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	_, err := r.client.DeletePolicy(
 		state.Metalake.ValueString(),
@@ -280,6 +293,8 @@ func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		resp.Diagnostics.Append(client.NewResourceError("deleting policy", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *PolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

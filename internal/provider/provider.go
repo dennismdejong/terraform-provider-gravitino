@@ -10,10 +10,12 @@ import (
 	dscredential "github.com/gravitino/terraform-provider-gravitino/internal/datasources/credential"
 	dsfileset "github.com/gravitino/terraform-provider-gravitino/internal/datasources/fileset"
 	dsfunction "github.com/gravitino/terraform-provider-gravitino/internal/datasources/function"
+	dsgroup "github.com/gravitino/terraform-provider-gravitino/internal/datasources/group"
 	dshealth "github.com/gravitino/terraform-provider-gravitino/internal/datasources/health"
 	dsjob "github.com/gravitino/terraform-provider-gravitino/internal/datasources/job"
 	dsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/datasources/metalake"
 	dsmodel "github.com/gravitino/terraform-provider-gravitino/internal/datasources/model"
+	dsowner "github.com/gravitino/terraform-provider-gravitino/internal/datasources/owner"
 	dspartition "github.com/gravitino/terraform-provider-gravitino/internal/datasources/partition"
 	dspolicy "github.com/gravitino/terraform-provider-gravitino/internal/datasources/policy"
 	dsrole "github.com/gravitino/terraform-provider-gravitino/internal/datasources/role"
@@ -22,19 +24,24 @@ import (
 	dstable "github.com/gravitino/terraform-provider-gravitino/internal/datasources/table"
 	dstag "github.com/gravitino/terraform-provider-gravitino/internal/datasources/tag"
 	dstopic "github.com/gravitino/terraform-provider-gravitino/internal/datasources/topic"
+	dsuser "github.com/gravitino/terraform-provider-gravitino/internal/datasources/user"
 	dsview "github.com/gravitino/terraform-provider-gravitino/internal/datasources/view"
 	rscatalog "github.com/gravitino/terraform-provider-gravitino/internal/resources/catalog"
 	rsfileset "github.com/gravitino/terraform-provider-gravitino/internal/resources/fileset"
 	rsfunction "github.com/gravitino/terraform-provider-gravitino/internal/resources/function"
+	rsgroup "github.com/gravitino/terraform-provider-gravitino/internal/resources/group"
 	rsjob "github.com/gravitino/terraform-provider-gravitino/internal/resources/job"
 	rsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/resources/metalake"
 	rsmodel "github.com/gravitino/terraform-provider-gravitino/internal/resources/model"
+	rsowner "github.com/gravitino/terraform-provider-gravitino/internal/resources/owner"
 	rspartition "github.com/gravitino/terraform-provider-gravitino/internal/resources/partition"
 	rspolicy "github.com/gravitino/terraform-provider-gravitino/internal/resources/policy"
+	rsrole "github.com/gravitino/terraform-provider-gravitino/internal/resources/role"
 	rsschema "github.com/gravitino/terraform-provider-gravitino/internal/resources/schema"
 	rstag "github.com/gravitino/terraform-provider-gravitino/internal/resources/tag"
 	rstable "github.com/gravitino/terraform-provider-gravitino/internal/resources/table"
 	rstopic "github.com/gravitino/terraform-provider-gravitino/internal/resources/topic"
+	rsuser "github.com/gravitino/terraform-provider-gravitino/internal/resources/user"
 	rsview "github.com/gravitino/terraform-provider-gravitino/internal/resources/view"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -173,6 +180,8 @@ func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.D
 		dsfileset.NewGetDataSource,
 		dstopic.NewTopicsDataSource,
 		dstopic.NewTopicDataSource,
+		dsgroup.NewListDataSource,
+		dsgroup.NewGetDataSource,
 		dspartition.NewPartitionsDataSource,
 		dspartition.NewPartitionDataSource,
 		dstable.NewTablesDataSource,
@@ -183,9 +192,14 @@ func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.D
 		dspolicy.NewListDataSource,
 		dscredential.New,
 		dsrole.New,
+		dsrole.NewRoleDataSource,
+		dsrole.NewRolesListDataSource,
 		dsstatistics.New,
 		dsstatistics.NewPartition,
 		dsauthentication.New,
+		dsowner.NewOwnerDataSource,
+		dsuser.NewListDataSource,
+		dsuser.NewGetDataSource,
 	}
 }
 
@@ -197,12 +211,16 @@ func (p *GravitinoProvider) Resources(_ context.Context) []func() resource.Resou
 		rsjob.New,
 		rsschema.NewSchemaResource,
 		rsmodel.New,
+		rsowner.NewOwnerResource,
 		rstable.NewTableResource,
 		rstag.New,
 		rstopic.NewTopicResource,
 		rsview.NewViewResource,
 		rsfunction.New,
+		rsgroup.New,
 		rspartition.NewPartitionResource,
 		rspolicy.New,
+		rsrole.NewRoleResource,
+		rsuser.New,
 	}
 }

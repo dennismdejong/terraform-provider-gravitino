@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &TagResource{}
@@ -114,6 +115,8 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
+	tflog.Debug(ctx, "Creating tag", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
+
 	createReq := &models.TagCreateRequest{
 		Name:       plan.Name.ValueString(),
 		Comment:    plan.Comment.ValueString(),
@@ -132,6 +135,8 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Created tag", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -140,6 +145,8 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading tag", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	result, err := r.client.GetTag(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -166,6 +173,8 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating tag", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -211,6 +220,8 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Updated tag", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -220,11 +231,15 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting tag", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DeleteTag(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting tag", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted tag", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *TagResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

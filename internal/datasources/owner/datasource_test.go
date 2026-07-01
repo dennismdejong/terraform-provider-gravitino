@@ -1,4 +1,4 @@
-package role_test
+package owner_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	ds "github.com/gravitino/terraform-provider-gravitino/internal/datasources/role"
+	ds "github.com/gravitino/terraform-provider-gravitino/internal/datasources/owner"
 	"github.com/gravitino/terraform-provider-gravitino/internal/models"
 
 	"github.com/gravitino/terraform-provider-gravitino/internal/client"
@@ -18,35 +18,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestRolesDataSource_Schema(t *testing.T) {
-	d := ds.New()
+func TestOwnerDataSource_Schema(t *testing.T) {
+	d := ds.NewOwnerDataSource()
 	resp := &datasource.MetadataResponse{}
 	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
-	if resp.TypeName != "gravitino_roles" {
-		t.Fatalf("expected gravitino_roles, got %s", resp.TypeName)
+	if resp.TypeName != "gravitino_owner" {
+		t.Fatalf("expected gravitino_owner, got %s", resp.TypeName)
 	}
 }
 
-func TestRolesDataSource_Read(t *testing.T) {
+func TestOwnerDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/objects/catalogs/test_catalog/roles"
+		expectedPath := "/api/metalakes/test_metalake/owners/CATALOG/test_catalog"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}
 
-		resp := models.RoleListResponse{
+		resp := models.OwnerResponse{
 			Code: 0,
-			Roles: []models.Role{
-				{
-					Name:            "admin",
-					Privileges:      []string{"CREATE_TABLE", "SELECT"},
-					SecurableObject: "catalog",
-				},
-				{
-					Name:            "viewer",
-					Privileges:      []string{"SELECT"},
-					SecurableObject: "catalog",
-				},
+			Owner: models.Owner{
+				Name: "admin",
+				Type: "USER",
 			},
 		}
 		json.NewEncoder(w).Encode(resp)
@@ -54,29 +46,26 @@ func TestRolesDataSource_Read(t *testing.T) {
 	defer server.Close()
 
 	c, _ := client.New(server.URL, "", "", "", "")
-	d := ds.New()
-	d.(*ds.RolesDataSource).SetClient(c)
+	d := ds.NewOwnerDataSource()
+	d.(*ds.OwnerDataSource).SetClient(c)
 
 	ctx := context.Background()
 	schemaResp := &datasource.SchemaResponse{}
 	d.Schema(ctx, datasource.SchemaRequest{}, schemaResp)
 	schemaObj := schemaResp.Schema
 
-	roleItemObjType := types.ObjectType{AttrTypes: ds.RoleItemAttrTypes}
-	rolesListType := types.ListType{ElemType: roleItemObjType}
-
 	attrTypes := map[string]attr.Type{
-		"metalake":      types.StringType,
-		"resource_type": types.StringType,
-		"resource":      types.StringType,
-		"roles":         rolesListType,
+		"metalake":         types.StringType,
+		"object_type":      types.StringType,
+		"object_full_name": types.StringType,
+		"owner_name":       types.StringType,
+		"owner_type":       types.StringType,
 	}
 
-	configModel := ds.RolesDataSourceModel{
-		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
-		Resource:     types.StringValue("test_catalog"),
-		Roles:        types.ListNull(roleItemObjType),
+	configModel := ds.OwnerDataSourceModel{
+		Metalake:       types.StringValue("test_metalake"),
+		ObjectType:     types.StringValue("CATALOG"),
+		ObjectFullName: types.StringValue("test_catalog"),
 	}
 
 	configObj, diags := types.ObjectValueFrom(ctx, attrTypes, configModel)

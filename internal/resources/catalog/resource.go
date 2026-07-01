@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &CatalogResource{}
@@ -133,6 +134,8 @@ func (r *CatalogResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
+	tflog.Debug(ctx, "Creating catalog", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
+
 	createReq := &models.CatalogCreateRequest{
 		Name:       plan.Name.ValueString(),
 		Type:       plan.Type.ValueString(),
@@ -153,6 +156,8 @@ func (r *CatalogResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Created catalog", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *CatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -161,6 +166,8 @@ func (r *CatalogResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading catalog", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	result, err := r.client.GetCatalog(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -187,6 +194,8 @@ func (r *CatalogResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Updating catalog", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	var updates []interface{}
 
@@ -232,6 +241,8 @@ func (r *CatalogResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Updated catalog", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *CatalogResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -241,11 +252,15 @@ func (r *CatalogResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting catalog", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DropCatalog(state.Metalake.ValueString(), state.Name.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting catalog", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted catalog", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *CatalogResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

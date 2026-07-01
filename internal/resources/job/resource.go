@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var _ resource.Resource = &JobResource{}
@@ -125,6 +126,8 @@ func (r *JobResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
+	tflog.Debug(ctx, "Creating job", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
+
 	createReq := &models.JobCreateRequest{
 		Name:       plan.Name.ValueString(),
 		Template:   plan.Template.ValueString(),
@@ -144,6 +147,8 @@ func (r *JobResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+
+	tflog.Debug(ctx, "Created job", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 }
 
 func (r *JobResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -152,6 +157,8 @@ func (r *JobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Reading job", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
 	result, err := r.client.GetJob(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
@@ -195,11 +202,15 @@ func (r *JobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
+	tflog.Debug(ctx, "Deleting job", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
+
 	_, err := r.client.DeleteJob(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting job", state.Name.ValueString(), err)...)
 		return
 	}
+
+	tflog.Debug(ctx, "Deleted job", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 }
 
 func (r *JobResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
