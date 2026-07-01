@@ -106,7 +106,10 @@ func (r *FunctionResource) Configure(_ context.Context, req resource.ConfigureRe
 	}
 	c, ok := req.ProviderData.(*client.Client)
 	if !ok {
-		resp.Diagnostics.AddError("Invalid provider data", "Expected *client.Client, got unexpected type.")
+		resp.Diagnostics.AddError(
+			"Invalid provider data",
+			fmt.Sprintf("Expected *client.Client, got: %T. Please report this issue.", req.ProviderData),
+		)
 		return
 	}
 	r.client = c

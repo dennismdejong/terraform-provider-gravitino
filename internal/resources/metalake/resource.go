@@ -102,8 +102,8 @@ func (r *MetalakeResource) Configure(_ context.Context, req resource.ConfigureRe
 	cli, ok := req.ProviderData.(*client.Client)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Provider Data",
-			fmt.Sprintf("Expected *client.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Invalid provider data",
+			fmt.Sprintf("Expected *client.Client, got: %T. Please report this issue.", req.ProviderData),
 		)
 		return
 	}
