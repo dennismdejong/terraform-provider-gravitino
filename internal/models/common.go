@@ -1,12 +1,19 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type ErrorResponse struct {
 	Code    int      `json:"code"`
 	Type    string   `json:"type"`
 	Message string   `json:"message"`
 	Stack   []string `json:"stack,omitempty"`
+}
+
+func (e ErrorResponse) Error() string {
+	return fmt.Sprintf("%s (%s)", e.Message, e.Type)
 }
 
 type Audit struct {

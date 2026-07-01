@@ -94,10 +94,11 @@ func (c *Client) do(method, path string, body, result interface{}) error {
 
 	if resp.StatusCode >= 400 {
 		var errResp models.ErrorResponse
+		errResp.Code = resp.StatusCode
 		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 			return fmt.Errorf("request failed with status %d", resp.StatusCode)
 		}
-		return fmt.Errorf("request failed with status %d: %s (%s)", resp.StatusCode, errResp.Message, errResp.Type)
+		return &errResp
 	}
 
 	if result != nil {
