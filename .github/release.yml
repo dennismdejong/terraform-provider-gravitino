@@ -1,0 +1,44 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - skip-changelog
+    authors:
+      - dependabot
+      - dependabot[bot]
+
+  categories:
+    - title: "Features"
+      labels:
+        - feature
+        - enhancement
+        - feat
+    - title: "Bug Fixes"
+      labels:
+        - bug
+        - fix
+        - bugfix
+    - title: "Documentation"
+      labels:
+        - documentation
+        - docs
+    - title: "Security"
+      labels:
+        - security
+    - title: "Maintenance"
+      labels:
+        - chore
+        - maintenance
+        - refactor
+    - title: "Dependencies"
+      labels:
+        - dependencies
+        - deps
+    - title: "Tests"
+      labels:
+        - test
+        - tests
+        - testing
+    - title: "Other Changes"
+      labels:
+        - "*"

@@ -1,25 +1,85 @@
-name: test
+name: Test
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  lint:
+    name: Lint & Security
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6.0.2
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version-file: go.mod
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9
+        with:
+          version: latest
+          args: --config .github/golangci.yml
+
+      - name: Run Gosec Security Scanner
+        id: gosec
+        uses: securego/gosec@9e6a9843d7a4a6e3e9a8539b02612c8a4aa3f889 # v2.27.1
+        continue-on-error: true
+        env:
+          GOTOOLCHAIN: auto
+        with:
+          args: -fmt sarif -out gosec.sarif -exclude-dir=vendor -tests=false -exclude=G101 ./
+
+      - name: Upload security scan results
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        if: always() && hashFiles('gosec.sarif') != ''
+        with:
+          sarif_file: gosec.sarif
+
+      - name: Fail on Gosec findings
+        if: always() && steps.gosec.outcome == 'failure'
+        run: |
+          echo "## Gosec Security Scanner Found Issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f gosec.sarif ]; then
+            echo "| Rule | File | Line | Description |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|------|------|-------------|" >> $GITHUB_STEP_SUMMARY
+            jq -r '.runs[0].results[] | "| \(.ruleId) | \(.locations[0].physicalLocation.artifactLocation.uri) | \(.locations[0].physicalLocation.region.startLine) | \(.message.text) |"' gosec.sarif >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See the **Security** tab for full details." >> $GITHUB_STEP_SUMMARY
+          exit 1
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: "go.mod"
+          cache: true
 
       - name: Run tests
-        run: go test -v -cover ./internal/...
+        run: go test -v -cover -race ./internal/...

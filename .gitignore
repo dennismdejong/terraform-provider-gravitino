@@ -29,8 +29,13 @@ Thumbs.db
 vendor/
 
 # Terraform
-.terraform/
+**/.terraform/*
 .terraform.lock.hcl
 terraform.tfstate
-terraform.tfstate.backup
-terraform.tfvars
+terraform.tfstate.*
+terraform-provider-*
+plan.bin
+*.tfvars
+*.log
+*.env
+dev.tfrc
