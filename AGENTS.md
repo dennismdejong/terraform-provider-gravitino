@@ -103,8 +103,34 @@ tflog.Debug(ctx, "Created catalog", map[string]interface{}{"metalake": m, "name"
 ### Commands
 - **Build**: `go build ./...`
 - **Test (unit)**: `go test -v -cover ./internal/...`
-- **Test (acceptance)**: `TF_ACC=1 go test -v -cover ./internal/...`
+- **Test (acceptance via Docker)**: `make testacc-docker`
+- **Lint**: `golangci-lint run --config .github/golangci.yml ./...`
+- **Lint fix**: `make lint-fix`
 - **Docs**: Use `github.com/hashicorp/terraform-plugin-docs`
+
+### Testing
+
+**Unit tests** (`httptest.NewServer`):
+```bash
+go test -v -cover ./internal/...
+```
+Each resource package has `resource_test.go` with: schema, create, delete, import (valid + invalid).
+
+**Acceptance tests** (real Gravitino via Docker):
+```bash
+docker compose run --rm test
+# Or filter by pattern:
+TEST_PATTERN=TestAccCatalog docker compose run --rm -e TEST_PATTERN=TestAccCatalog test
+```
+
+### Logging
+
+Use `tflog` from `github.com/hashicorp/terraform-plugin-log/tflog`:
+- `tflog.Debug(ctx, msg, fields...)` — CRUD boundaries, before API calls
+- `tflog.Warn(ctx, msg, fields...)` — non-fatal issues
+- `tflog.Error(ctx, msg, fields...)` — errors returned as diagnostics
+
+Fields use `map[string]interface{}` format. Logs respect `TF_LOG`, `TF_LOG_PATH`, `TF_LOG_PROVIDER` env vars.
 
 ### Dependencies
 - Go 1.26.4
