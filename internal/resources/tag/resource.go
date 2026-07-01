@@ -122,7 +122,7 @@ func (r *TagResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	result, err := r.client.CreateTag(plan.Metalake.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create tag", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating tag", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -143,11 +143,11 @@ func (r *TagResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	result, err := r.client.GetTag(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read tag", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading tag", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (r *TagResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	if len(updates) > 0 {
 		result, err := r.client.UpdateTag(state.Metalake.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update tag", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating tag", state.Name.ValueString(), err)...)
 			return
 		}
 		setStateFromTag(ctx, &resp.Diagnostics, plan.Metalake.ValueString(), &result.Tag, &plan)
@@ -222,7 +222,7 @@ func (r *TagResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	_, err := r.client.DeleteTag(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete tag", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting tag", state.Name.ValueString(), err)...)
 		return
 	}
 }

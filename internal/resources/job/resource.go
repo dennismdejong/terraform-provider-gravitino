@@ -134,7 +134,7 @@ func (r *JobResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	result, err := r.client.CreateJob(plan.Metalake.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create job", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating job", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -155,11 +155,11 @@ func (r *JobResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 
 	result, err := r.client.GetJob(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read job", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading job", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (r *JobResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	_, err := r.client.DeleteJob(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete job", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting job", state.Name.ValueString(), err)...)
 		return
 	}
 }

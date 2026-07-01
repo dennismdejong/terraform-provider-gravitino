@@ -132,7 +132,7 @@ func (r *PartitionResource) Create(ctx context.Context, req resource.CreateReque
 
 	partitionResp, err := r.client.CreatePartition(plan.Metalake.ValueString(), plan.Catalog.ValueString(), plan.Schema.ValueString(), plan.Table.ValueString(), createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create partition", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating partition", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -153,11 +153,11 @@ func (r *PartitionResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	partitionResp, err := r.client.GetPartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read partition", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading partition", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -209,14 +209,14 @@ func (r *PartitionResource) Update(ctx context.Context, req resource.UpdateReque
 	if len(updates) > 0 {
 		partitionResp, err := r.client.UpdatePartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update partition", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating partition", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readPartitionToState(ctx, partitionResp, &plan, &resp.Diagnostics)
 	} else {
 		partitionResp, err := r.client.GetPartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to read partition after update", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("reading partition after update", state.Name.ValueString(), err)...)
 			return
 		}
 		r.readPartitionToState(ctx, partitionResp, &plan, &resp.Diagnostics)
@@ -234,7 +234,7 @@ func (r *PartitionResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	_, err := r.client.DropPartition(state.Metalake.ValueString(), state.Catalog.ValueString(), state.Schema.ValueString(), state.Table.ValueString(), state.Name.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete partition", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting partition", state.Name.ValueString(), err)...)
 		return
 	}
 }

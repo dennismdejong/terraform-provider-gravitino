@@ -169,7 +169,7 @@ func (r *PolicyResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	result, err := r.client.CreatePolicy(metalake, resourceType, resourceName, createReq)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create policy", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating policy", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -194,11 +194,11 @@ func (r *PolicyResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	result, err := r.client.GetPolicy(metalake, resourceType, resourceName, state.Name.ValueString())
 	if err != nil {
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "Not Found") {
+		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Failed to read policy", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading policy", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -248,7 +248,7 @@ func (r *PolicyResource) Update(ctx context.Context, req resource.UpdateRequest,
 	if len(updates) > 0 {
 		result, err := r.client.UpdatePolicy(metalake, resourceType, resourceName, state.Name.ValueString(), updates)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update policy", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating policy", state.Name.ValueString(), err)...)
 			return
 		}
 		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, resourceType, resourceName, &result.Policy, &plan)
@@ -277,7 +277,7 @@ func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		state.Name.ValueString(),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to delete policy", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting policy", state.Name.ValueString(), err)...)
 		return
 	}
 }

@@ -300,7 +300,7 @@ func (r *tableResource) Create(ctx context.Context, req resource.CreateRequest, 
 		createReq,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create table", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("creating table", plan.Name.ValueString(), err)...)
 		return
 	}
 
@@ -334,8 +334,11 @@ func (r *tableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		state.Name.ValueString(),
 	)
 	if err != nil {
-		resp.State.RemoveResource(ctx)
-		resp.Diagnostics.AddWarning("Failed to read table", err.Error())
+		if client.IsNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.Append(client.NewResourceError("reading table", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -401,7 +404,7 @@ func (r *tableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 			updates,
 		)
 		if err != nil {
-			resp.Diagnostics.AddError("Failed to update table", err.Error())
+			resp.Diagnostics.Append(client.NewResourceError("updating table", state.Name.ValueString(), err)...)
 			return
 		}
 	}
@@ -413,7 +416,7 @@ func (r *tableResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		plan.Name.ValueString(),
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to read table after update", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("reading table after update", state.Name.ValueString(), err)...)
 		return
 	}
 
@@ -442,7 +445,7 @@ func (r *tableResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		false,
 	)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to drop table", err.Error())
+		resp.Diagnostics.Append(client.NewResourceError("deleting table", state.Name.ValueString(), err)...)
 	}
 }
 
