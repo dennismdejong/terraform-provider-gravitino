@@ -18,7 +18,7 @@ import (
 func TestTopicResource_Schema(t *testing.T) {
 	r := res.NewTopicResource()
 	resp := &resource.MetadataResponse{}
-	r.Metadata(nil, resource.MetadataRequest{}, resp)
+	r.Metadata(context.TODO(), resource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_topic" {
 		t.Fatalf("expected gravitino_topic, got %s", resp.TypeName)
 	}

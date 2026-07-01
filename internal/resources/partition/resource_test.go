@@ -20,7 +20,7 @@ import (
 func TestPartitionResource_Schema(t *testing.T) {
 	r := res.NewPartitionResource()
 	resp := &resource.MetadataResponse{}
-	r.Metadata(nil, resource.MetadataRequest{}, resp)
+	r.Metadata(context.TODO(), resource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_partition" {
 		t.Fatalf("expected gravitino_partition, got %s", resp.TypeName)
 	}

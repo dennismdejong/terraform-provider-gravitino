@@ -21,7 +21,7 @@ import (
 func TestFilesetsDataSource_Schema(t *testing.T) {
 	d := ds.NewListDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_filesets" {
 		t.Fatalf("expected gravitino_filesets, got %s", resp.TypeName)
 	}
@@ -112,7 +112,7 @@ func TestFilesetsDataSource_Read(t *testing.T) {
 func TestFilesetDataSource_Schema(t *testing.T) {
 	d := ds.NewGetDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_fileset" {
 		t.Fatalf("expected gravitino_fileset, got %s", resp.TypeName)
 	}

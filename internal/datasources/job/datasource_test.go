@@ -21,7 +21,7 @@ import (
 func TestJobsDataSource_Schema(t *testing.T) {
 	d := ds.NewListDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_jobs" {
 		t.Fatalf("expected gravitino_jobs, got %s", resp.TypeName)
 	}
@@ -101,7 +101,7 @@ func TestJobsDataSource_Read(t *testing.T) {
 func TestJobDataSource_Schema(t *testing.T) {
 	d := ds.NewGetDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_job" {
 		t.Fatalf("expected gravitino_job, got %s", resp.TypeName)
 	}

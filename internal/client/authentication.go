@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 func (c *Client) GetAuthenticatedPrincipal() (*models.PrincipalResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/principal", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, c.baseURL+"/principal", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -21,7 +22,7 @@ func (c *Client) GetAuthenticatedPrincipal() (*models.PrincipalResponse, error) 
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		var errResp models.ErrorResponse

@@ -44,7 +44,7 @@ func setupHealthServer(t *testing.T, expectedPath string, status string, checks 
 func TestHealthDataSource_Schema(t *testing.T) {
 	d := ds.NewHealthDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_health" {
 		t.Fatalf("expected gravitino_health, got %s", resp.TypeName)
 	}
@@ -118,7 +118,7 @@ func TestHealthDataSource_Read(t *testing.T) {
 func TestLivenessDataSource_Schema(t *testing.T) {
 	d := ds.NewLivenessDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_liveness" {
 		t.Fatalf("expected gravitino_liveness, got %s", resp.TypeName)
 	}
@@ -187,7 +187,7 @@ func TestLivenessDataSource_Read(t *testing.T) {
 func TestReadinessDataSource_Schema(t *testing.T) {
 	d := ds.NewReadinessDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_readiness" {
 		t.Fatalf("expected gravitino_readiness, got %s", resp.TypeName)
 	}

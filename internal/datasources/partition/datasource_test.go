@@ -21,7 +21,7 @@ import (
 func TestPartitionsDataSource_Schema(t *testing.T) {
 	d := ds.NewPartitionsDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_partitions" {
 		t.Fatalf("expected gravitino_partitions, got %s", resp.TypeName)
 	}
@@ -112,7 +112,7 @@ func TestPartitionsDataSource_Read(t *testing.T) {
 func TestPartitionDataSource_Schema(t *testing.T) {
 	d := ds.NewPartitionDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_partition" {
 		t.Fatalf("expected gravitino_partition, got %s", resp.TypeName)
 	}

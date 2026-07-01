@@ -21,7 +21,7 @@ import (
 func TestTagsDataSource_Schema(t *testing.T) {
 	d := ds.NewListDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_tags" {
 		t.Fatalf("expected gravitino_tags, got %s", resp.TypeName)
 	}
@@ -103,7 +103,7 @@ func TestTagsDataSource_Read(t *testing.T) {
 func TestTagDataSource_Schema(t *testing.T) {
 	d := ds.NewGetDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_tag" {
 		t.Fatalf("expected gravitino_tag, got %s", resp.TypeName)
 	}

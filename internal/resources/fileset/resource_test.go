@@ -20,7 +20,7 @@ import (
 func TestFilesetResource_Schema(t *testing.T) {
 	r := res.New()
 	resp := &resource.MetadataResponse{}
-	r.Metadata(nil, resource.MetadataRequest{}, resp)
+	r.Metadata(context.TODO(), resource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_fileset" {
 		t.Fatalf("expected gravitino_fileset, got %s", resp.TypeName)
 	}

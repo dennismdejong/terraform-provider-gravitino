@@ -21,7 +21,7 @@ import (
 func TestCredentialsDataSource_Schema(t *testing.T) {
 	d := ds.New()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_credentials" {
 		t.Fatalf("expected gravitino_credentials, got %s", resp.TypeName)
 	}

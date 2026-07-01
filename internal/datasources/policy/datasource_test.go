@@ -21,7 +21,7 @@ import (
 func TestPoliciesDataSource_Schema(t *testing.T) {
 	d := ds.NewListDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_policies" {
 		t.Fatalf("expected gravitino_policies, got %s", resp.TypeName)
 	}

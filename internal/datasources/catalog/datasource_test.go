@@ -21,7 +21,7 @@ import (
 func TestCatalogsDataSource_Schema(t *testing.T) {
 	d := ds.NewListDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_catalogs" {
 		t.Fatalf("expected gravitino_catalogs, got %s", resp.TypeName)
 	}
@@ -105,7 +105,7 @@ func TestCatalogsDataSource_Read(t *testing.T) {
 func TestCatalogDataSource_Schema(t *testing.T) {
 	d := ds.NewGetDataSource()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_catalog" {
 		t.Fatalf("expected gravitino_catalog, got %s", resp.TypeName)
 	}

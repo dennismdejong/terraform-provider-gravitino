@@ -130,12 +130,12 @@ func setDataSourceStateFromFileset(_ context.Context, diags *diag.Diagnostics, f
 	model.Type = types.StringValue(fileset.Type)
 	model.StorageLocation = types.StringValue(fileset.StorageLocation)
 
-	props, d := types.MapValueFrom(nil, types.StringType, fileset.Properties)
+	props, d := types.MapValueFrom(context.TODO(), types.StringType, fileset.Properties)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(nil, fileset.Audit)
+	model.Audit = auditToObjectValueForDS(context.TODO(), fileset.Audit)
 }

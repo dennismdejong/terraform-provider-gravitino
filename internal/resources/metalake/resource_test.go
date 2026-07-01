@@ -22,7 +22,7 @@ func TestMetalakeResource_Schema(t *testing.T) {
 	resp := &resource.MetadataResponse{}
 	r.(interface {
 		Metadata(context.Context, resource.MetadataRequest, *resource.MetadataResponse)
-	}).Metadata(nil, resource.MetadataRequest{ProviderTypeName: "gravitino"}, resp)
+	}).Metadata(context.TODO(), resource.MetadataRequest{ProviderTypeName: "gravitino"}, resp)
 	if resp.TypeName != "gravitino_metalake" {
 		t.Fatalf("expected gravitino_metalake, got %s", resp.TypeName)
 	}

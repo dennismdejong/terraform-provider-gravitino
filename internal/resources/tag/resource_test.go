@@ -20,7 +20,7 @@ import (
 func TestTagResource_Schema(t *testing.T) {
 	r := res.New()
 	resp := &resource.MetadataResponse{}
-	r.Metadata(nil, resource.MetadataRequest{}, resp)
+	r.Metadata(context.TODO(), resource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_tag" {
 		t.Fatalf("expected gravitino_tag, got %s", resp.TypeName)
 	}

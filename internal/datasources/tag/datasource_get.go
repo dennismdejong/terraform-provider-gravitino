@@ -108,12 +108,12 @@ func (d *TagDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 func setDataSourceStateFromTag(_ context.Context, diags *diag.Diagnostics, tag *models.Tag, model *TagDataSourceModel) {
 	model.Comment = types.StringValue(tag.Comment)
 
-	props, d := types.MapValueFrom(nil, types.StringType, tag.Properties)
+	props, d := types.MapValueFrom(context.TODO(), types.StringType, tag.Properties)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(nil, tag.Audit)
+	model.Audit = auditToObjectValueForDS(context.TODO(), tag.Audit)
 }

@@ -278,19 +278,6 @@ func auditToObjectValue(ctx context.Context, audit *models.Audit) (types.Object,
 	return types.ObjectValue(AuditAttrTypes, attrs)
 }
 
-func mapFromTF(m types.Map) map[string]string {
-	result := make(map[string]string)
-	if m.IsNull() || m.IsUnknown() {
-		return result
-	}
-	for k, v := range m.Elements() {
-		if strVal, ok := v.(types.String); ok {
-			result[k] = strVal.ValueString()
-		}
-	}
-	return result
-}
-
 func mapFromTFInterface(m types.Map) map[string]interface{} {
 	result := make(map[string]interface{})
 	if m.IsNull() || m.IsUnknown() {

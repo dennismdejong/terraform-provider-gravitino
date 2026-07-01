@@ -21,7 +21,7 @@ import (
 func TestRolesDataSource_Schema(t *testing.T) {
 	d := ds.New()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_roles" {
 		t.Fatalf("expected gravitino_roles, got %s", resp.TypeName)
 	}

@@ -21,7 +21,7 @@ import (
 func TestPrincipalDataSource_Schema(t *testing.T) {
 	d := ds.New()
 	resp := &datasource.MetadataResponse{}
-	d.Metadata(nil, datasource.MetadataRequest{}, resp)
+	d.Metadata(context.TODO(), datasource.MetadataRequest{}, resp)
 	if resp.TypeName != "gravitino_principal" {
 		t.Fatalf("expected gravitino_principal, got %s", resp.TypeName)
 	}

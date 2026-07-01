@@ -120,12 +120,12 @@ func setDataSourceStateFromCatalog(_ context.Context, diags *diag.Diagnostics, c
 	model.Provider = types.StringValue(catalog.Provider)
 	model.Comment = types.StringValue(catalog.Comment)
 
-	props, d := types.MapValueFrom(nil, types.StringType, catalog.Properties)
+	props, d := types.MapValueFrom(context.TODO(), types.StringType, catalog.Properties)
 	diags.Append(d...)
 	if diags.HasError() {
 		return
 	}
 	model.Properties = props
 
-	model.Audit = auditToObjectValueForDS(nil, catalog.Audit)
+	model.Audit = auditToObjectValueForDS(context.TODO(), catalog.Audit)
 }
