@@ -11,9 +11,9 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_roles_list" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
 }
 ```
 

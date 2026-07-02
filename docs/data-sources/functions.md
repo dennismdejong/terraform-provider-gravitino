@@ -11,9 +11,11 @@ Lists all functions within a Gravitino metalake, catalog, and schema.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_functions" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
+  schema   = "example_schema"
 }
 ```
 

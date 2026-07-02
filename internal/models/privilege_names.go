@@ -105,3 +105,13 @@ const (
 	OwnerTypeUser  = "USER"
 	OwnerTypeGroup = "GROUP"
 )
+
+var OwnerObjectTypes = []string{
+	ObjectTypeMetalake,
+	ObjectTypeCatalog,
+	ObjectTypeSchema,
+	ObjectTypeTable,
+	ObjectTypeFileset,
+	ObjectTypeTopic,
+	ObjectTypeRole,
+}

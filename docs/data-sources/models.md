@@ -11,9 +11,11 @@ Lists all models within a Gravitino metalake, catalog, and schema.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_models" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "ml_catalog"
+  schema   = "example_schema"
 }
 ```
 

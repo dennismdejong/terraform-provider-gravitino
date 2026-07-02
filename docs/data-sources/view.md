@@ -11,9 +11,12 @@ Retrieves a single Gravitino view by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_view" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
+  schema   = "example_schema"
+  name     = "user_summary"
 }
 ```
 

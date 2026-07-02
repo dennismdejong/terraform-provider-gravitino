@@ -11,9 +11,11 @@ Lists all topics within a Gravitino metalake, catalog, and schema.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_topics" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "kafka_catalog"
+  schema   = "example_schema"
 }
 ```
 

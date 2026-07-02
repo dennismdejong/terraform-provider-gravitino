@@ -11,9 +11,11 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_owner" "example" {
-  # ... example configuration ...
+  metalake         = "example_metalake"
+  object_type      = "CATALOG"
+  object_full_name = "hive_catalog"
 }
 ```
 

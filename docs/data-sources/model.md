@@ -11,9 +11,12 @@ Retrieves a single Gravitino model by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_model" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "ml_catalog"
+  schema   = "example_schema"
+  name     = "fraud_detector"
 }
 ```
 

@@ -11,9 +11,10 @@ Lists all schemas within a Gravitino metalake and catalog.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_schemas" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
 }
 ```
 

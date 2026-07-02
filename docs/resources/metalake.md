@@ -11,9 +11,17 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
+resource "gravitino_metalake" "minimal" {
+  name = "minimal_metalake"
+}
+
 resource "gravitino_metalake" "example" {
-  # ... example configuration ...
+  name    = "example_metalake"
+  comment = "Example metalake for development"
+  properties = {
+    env = "dev"
+  }
 }
 ```
 

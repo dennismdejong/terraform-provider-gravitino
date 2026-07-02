@@ -79,7 +79,7 @@ func (d *RolesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 			Required:    true,
 			Description: "The resource type (e.g. catalogs, schemas, tables).",
 			Validators: []validator.String{
-				stringvalidator.OneOf("catalogs", "schemas", "tables", "filesets", "topics", "models", "tags"),
+				stringvalidator.OneOf(models.AllObjectTypes...),
 			},
 		},
 			"resource": schema.StringAttribute{

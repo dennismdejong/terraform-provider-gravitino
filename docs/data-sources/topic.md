@@ -11,9 +11,12 @@ Retrieves a single Gravitino topic by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_topic" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "kafka_catalog"
+  schema   = "example_schema"
+  name     = "user_events"
 }
 ```
 

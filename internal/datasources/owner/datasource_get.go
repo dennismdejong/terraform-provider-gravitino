@@ -67,7 +67,7 @@ func (d *OwnerDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 			Required:    true,
 			Description: "The object type (e.g. CATALOG, SCHEMA, TABLE, etc.).",
 			Validators: []validator.String{
-				stringvalidator.OneOf(models.AllObjectTypes...),
+				stringvalidator.OneOf(models.OwnerObjectTypes...),
 			},
 		},
 			"object_full_name": schema.StringAttribute{

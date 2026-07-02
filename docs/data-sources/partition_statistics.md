@@ -11,9 +11,13 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_partition_statistics" "example" {
-  # ... example configuration ...
+  metalake   = "example_metalake"
+  catalog    = "hive_catalog"
+  schema     = "example_schema"
+  table      = "orders"
+  partition  = "2024_q1"
 }
 ```
 

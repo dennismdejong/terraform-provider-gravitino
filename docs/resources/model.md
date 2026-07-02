@@ -11,9 +11,13 @@ Manages a Gravitino model within a metalake, catalog, and schema.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "gravitino_model" "example" {
-  # ... example configuration ...
+  metalake = gravitino_metalake.example.name
+  catalog  = gravitino_catalog.ml.name
+  schema   = gravitino_schema.example.name
+  name     = "fraud_detector"
+  comment  = "ML model for fraud detection"
 }
 ```
 

@@ -11,9 +11,13 @@ Manages a Gravitino view within a metalake, catalog, and schema.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "gravitino_view" "example" {
-  # ... example configuration ...
+  metalake = gravitino_metalake.example.name
+  catalog  = gravitino_catalog.hive.name
+  schema   = gravitino_schema.example.name
+  name     = "user_summary"
+  comment  = "View aggregating user data"
 }
 ```
 

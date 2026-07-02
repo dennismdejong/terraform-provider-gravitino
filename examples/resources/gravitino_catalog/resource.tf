@@ -15,3 +15,16 @@ resource "gravitino_catalog" "fileset" {
   type     = "fileset"
   comment  = "Fileset catalog for data lake"
 }
+
+resource "gravitino_catalog" "lakehouse_iceberg" {
+  metalake = gravitino_metalake.example.name
+  name     = "lakehouse_iceberg_catalog"
+  type     = "relational"
+  provider = "lakehouse-iceberg"
+  comment  = "Lakehouse Iceberg catalog for transactional data lake"
+  properties = {
+    "warehouse" = "s3a://iceberg-warehouse"
+    "catalog-backend" = "jdbc"
+    "uri" = "jdbc:postgresql://localhost:5432/iceberg"
+  }
+}

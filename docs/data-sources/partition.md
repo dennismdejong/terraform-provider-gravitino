@@ -11,9 +11,13 @@ Retrieves a single Gravitino partition by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_partition" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
+  schema   = "example_schema"
+  table    = "orders"
+  name     = "2024_q1"
 }
 ```
 

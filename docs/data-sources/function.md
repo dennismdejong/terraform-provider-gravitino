@@ -11,9 +11,12 @@ Retrieves a single Gravitino function by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_function" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
+  schema   = "example_schema"
+  name     = "parse_json"
 }
 ```
 

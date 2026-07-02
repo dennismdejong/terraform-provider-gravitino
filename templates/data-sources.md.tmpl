@@ -11,10 +11,6 @@ description: |-
 
 ## Example Usage
 
-```hcl
-data "{{ .Name }}" "example" {
-  # ... example configuration ...
-}
-```
+{{ tffile (printf "examples/data-sources/%s/data-source.tf" .Name) }}
 
 {{ .SchemaMarkdown | trimspace }}

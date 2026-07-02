@@ -11,9 +11,11 @@ Retrieves a single Gravitino schema by name.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_schema" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  catalog  = "hive_catalog"
+  name     = "example_schema"
 }
 ```
 

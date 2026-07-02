@@ -11,9 +11,10 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "gravitino_job" "example" {
-  # ... example configuration ...
+  metalake = "example_metalake"
+  name     = "daily_etl"
 }
 ```
 
