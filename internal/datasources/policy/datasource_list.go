@@ -98,7 +98,7 @@ func (d *PoliciesDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 				Required:    true,
 				Description: "The metadata object resource type. Must be one of: metalakes, catalogs, schemas, tables, filesets, topics.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("metalakes", "catalogs", "schemas", "tables", "filesets", "topics"),
+					stringvalidator.OneOf("metalakes", "catalogs", "schemas", "tables", "filesets", "topics", "models"),
 				},
 			},
 			"resource": schema.StringAttribute{

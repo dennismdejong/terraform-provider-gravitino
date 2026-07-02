@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/gravitino/terraform-provider-gravitino/internal/client"
+	"github.com/gravitino/terraform-provider-gravitino/internal/models"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 var _ datasource.DataSource = &OwnerDataSource{}
@@ -60,10 +63,13 @@ func (d *OwnerDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Required:    true,
 				Description: "The metalake name.",
 			},
-			"object_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The object type (e.g. CATALOG, SCHEMA, TABLE, etc.).",
+		"object_type": schema.StringAttribute{
+			Required:    true,
+			Description: "The object type (e.g. CATALOG, SCHEMA, TABLE, etc.).",
+			Validators: []validator.String{
+				stringvalidator.OneOf(models.AllObjectTypes...),
 			},
+		},
 			"object_full_name": schema.StringAttribute{
 				Required:    true,
 				Description: "The full object name (dot-separated).",

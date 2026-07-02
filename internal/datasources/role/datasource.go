@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 var _ datasource.DataSource = &RolesDataSource{}
@@ -73,10 +75,13 @@ func (d *RolesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Required:    true,
 				Description: "The metalake name.",
 			},
-			"resource_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The resource type (e.g. catalogs, schemas, tables).",
+		"resource_type": schema.StringAttribute{
+			Required:    true,
+			Description: "The resource type (e.g. catalogs, schemas, tables).",
+			Validators: []validator.String{
+				stringvalidator.OneOf("catalogs", "schemas", "tables", "filesets", "topics", "models", "tags"),
 			},
+		},
 			"resource": schema.StringAttribute{
 				Required:    true,
 				Description: "The resource name.",

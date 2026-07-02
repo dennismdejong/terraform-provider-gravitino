@@ -49,7 +49,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 var _ provider.Provider = (*GravitinoProvider)(nil)
@@ -86,10 +88,13 @@ func (p *GravitinoProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 				Optional:    true,
 				Description: "The URI of the Gravitino server. Can also be set via GRAVITINO_URI environment variable.",
 			},
-			"auth": schema.StringAttribute{
-				Optional:    true,
-				Description: "Authentication method: 'basic' or 'oauth'. Can also be set via GRAVITINO_AUTH environment variable.",
+		"auth": schema.StringAttribute{
+			Optional:    true,
+			Description: "Authentication method: 'basic' or 'oauth'. Can also be set via GRAVITINO_AUTH environment variable.",
+			Validators: []validator.String{
+				stringvalidator.OneOf("basic", "oauth"),
 			},
+		},
 			"username": schema.StringAttribute{
 				Optional:    true,
 				Description: "Username for basic authentication. Can also be set via GRAVITINO_USERNAME environment variable.",

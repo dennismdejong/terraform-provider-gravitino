@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -126,23 +128,32 @@ func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 							Required:    true,
 							Description: "The full name of the securable object.",
 						},
-						"type": schema.StringAttribute{
-							Required:    true,
-							Description: "The type of the securable object.",
+					"type": schema.StringAttribute{
+						Required:    true,
+						Description: "The type of the securable object.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(models.AllObjectTypes...),
 						},
+					},
 						"privileges": schema.ListNestedAttribute{
 							Required:    true,
 							Description: "The privileges for the securable object.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"name": schema.StringAttribute{
-										Required:    true,
-										Description: "The privilege name.",
+								"name": schema.StringAttribute{
+									Required:    true,
+									Description: "The privilege name.",
+									Validators: []validator.String{
+										stringvalidator.OneOf(models.AllPrivileges...),
 									},
-									"condition": schema.StringAttribute{
-										Required:    true,
-										Description: "The privilege condition.",
+								},
+								"condition": schema.StringAttribute{
+									Required:    true,
+									Description: "The privilege condition.",
+									Validators: []validator.String{
+										stringvalidator.OneOf(models.PrivilegeConditionAllow, models.PrivilegeConditionDeny),
 									},
+								},
 								},
 							},
 						},

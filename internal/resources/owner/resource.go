@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -75,10 +77,13 @@ func (r *OwnerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:    true,
 				Description: "The metalake name.",
 			},
-			"object_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The object type (e.g. CATALOG, SCHEMA, TABLE, etc.).",
+		"object_type": schema.StringAttribute{
+			Required:    true,
+			Description: "The object type (e.g. CATALOG, SCHEMA, TABLE, etc.).",
+			Validators: []validator.String{
+				stringvalidator.OneOf(models.AllObjectTypes...),
 			},
+		},
 			"object_full_name": schema.StringAttribute{
 				Required:    true,
 				Description: "The full object name (dot-separated).",
@@ -87,10 +92,13 @@ func (r *OwnerResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:    true,
 				Description: "The owner name.",
 			},
-			"owner_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The owner type (USER or GROUP).",
+		"owner_type": schema.StringAttribute{
+			Required:    true,
+			Description: "The owner type (USER or GROUP).",
+			Validators: []validator.String{
+				stringvalidator.OneOf(models.OwnerTypeUser, models.OwnerTypeGroup),
 			},
+		},
 		},
 	}
 }

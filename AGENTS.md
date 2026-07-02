@@ -90,6 +90,7 @@ tflog.Debug(ctx, "Created catalog", map[string]interface{}{"metalake": m, "name"
 - **404 handling**: `client.IsNotFoundError(err)` → `resp.State.RemoveResource(ctx)` (all resources)
 - **Configure**: Casts `req.ProviderData` to `*client.Client`
 - **Tests**: Use `httptest.NewServer` with custom handlers; test schema, create, delete, import
+- **Enum validators**: Always check the Gravitino API docs for possible values and add `stringvalidator.OneOf(...)` to enum fields. Store shared enums as constants in `internal/models/privilege_names.go`.
 
 ### Checklist for New Resources
 
@@ -99,6 +100,8 @@ tflog.Debug(ctx, "Created catalog", map[string]interface{}{"metalake": m, "name"
 - [ ] Import with dot-separated ID parsing (valid + invalid test)
 - [ ] Unit tests: schema, create, delete, import
 - [ ] Resource registered in `internal/provider/provider.go`
+- [ ] Enum fields have `stringvalidator.OneOf` with all possible values from API docs
+- [ ] Docs generated via `make generate`
 
 ### Commands
 - **Build**: `go build ./...`
