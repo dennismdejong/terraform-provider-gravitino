@@ -38,17 +38,6 @@ type RoleDataSourceModel struct {
 	Audit            types.Object `tfsdk:"audit"`
 }
 
-type roleSecurableObjectModel struct {
-	FullName   types.String `tfsdk:"full_name"`
-	Type       types.String `tfsdk:"type"`
-	Privileges types.List   `tfsdk:"privileges"`
-}
-
-type rolePrivilegeModel struct {
-	Name      types.String `tfsdk:"name"`
-	Condition types.String `tfsdk:"condition"`
-}
-
 var RolePrivilegeAttrTypes = map[string]attr.Type{
 	"name":      types.StringType,
 	"condition": types.StringType,
