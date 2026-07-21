@@ -237,13 +237,10 @@ func (r *ModelVersionResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 	}
 
-	needsUpdate := false
-	if !plan.URI.Equal(state.URI) ||
+	needsUpdate := !plan.URI.Equal(state.URI) ||
 		!plan.Comment.Equal(state.Comment) ||
 		!plan.Aliases.Equal(state.Aliases) ||
-		!plan.Properties.Equal(state.Properties) {
-		needsUpdate = true
-	}
+		!plan.Properties.Equal(state.Properties)
 
 	if needsUpdate {
 		updateReq := &models.ModelVersionLinkRequest{

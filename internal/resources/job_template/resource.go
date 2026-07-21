@@ -190,20 +190,10 @@ func (r *JobTemplateResource) Update(ctx context.Context, req resource.UpdateReq
 
 	tflog.Debug(ctx, "Updating job template", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
-	needsUpdate := false
-
-	if !plan.Template.Equal(state.Template) {
-		needsUpdate = true
-	}
-	if !plan.Comment.Equal(state.Comment) {
-		needsUpdate = true
-	}
-	if !mapsEqual(plan.Parameters, state.Parameters) {
-		needsUpdate = true
-	}
-	if !mapsEqual(plan.Properties, state.Properties) {
-		needsUpdate = true
-	}
+	needsUpdate := !plan.Template.Equal(state.Template) ||
+		!plan.Comment.Equal(state.Comment) ||
+		!mapsEqual(plan.Parameters, state.Parameters) ||
+		!mapsEqual(plan.Properties, state.Properties)
 
 	if needsUpdate {
 		updateReq := &models.JobTemplateCreateRequest{
