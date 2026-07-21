@@ -64,3 +64,35 @@ func (c *Client) DeletePolicy(metalake, resourceType, resource, name string) (*m
 	err := c.Delete(path, &result)
 	return &result, err
 }
+
+func (c *Client) AssociatePoliciesForObject(metalake, objType, objFullName string, policyNames []string) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/policies",
+		url.PathEscape(metalake), url.PathEscape(objType), url.PathEscape(objFullName))
+	var result models.BaseResponse
+	body := map[string][]string{"policyNames": policyNames}
+	if err := c.Post(path, body, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) SetPolicy(metalake, policyName string, enabled bool) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/policies/%s",
+		url.PathEscape(metalake), url.PathEscape(policyName))
+	var result models.BaseResponse
+	body := map[string]bool{"enabled": enabled}
+	if err := c.Patch(path, body, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) ListMetadataObjectsForPolicy(metalake, policyName string) (*models.IdentifiersResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/policies/%s/objects",
+		url.PathEscape(metalake), url.PathEscape(policyName))
+	var result models.IdentifiersResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

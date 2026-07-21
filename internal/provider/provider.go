@@ -13,8 +13,10 @@ import (
 	dsgroup "github.com/gravitino/terraform-provider-gravitino/internal/datasources/group"
 	dshealth "github.com/gravitino/terraform-provider-gravitino/internal/datasources/health"
 	dsjob "github.com/gravitino/terraform-provider-gravitino/internal/datasources/job"
+	dsjobtemplate "github.com/gravitino/terraform-provider-gravitino/internal/datasources/job_template"
 	dsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/datasources/metalake"
 	dsmodel "github.com/gravitino/terraform-provider-gravitino/internal/datasources/model"
+	dsmodelversion "github.com/gravitino/terraform-provider-gravitino/internal/datasources/model_version"
 	dsowner "github.com/gravitino/terraform-provider-gravitino/internal/datasources/owner"
 	dspartition "github.com/gravitino/terraform-provider-gravitino/internal/datasources/partition"
 	dspolicy "github.com/gravitino/terraform-provider-gravitino/internal/datasources/policy"
@@ -31,8 +33,10 @@ import (
 	rsfunction "github.com/gravitino/terraform-provider-gravitino/internal/resources/function"
 	rsgroup "github.com/gravitino/terraform-provider-gravitino/internal/resources/group"
 	rsjob "github.com/gravitino/terraform-provider-gravitino/internal/resources/job"
+	rsjobtemplate "github.com/gravitino/terraform-provider-gravitino/internal/resources/job_template"
 	rsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/resources/metalake"
 	rsmodel "github.com/gravitino/terraform-provider-gravitino/internal/resources/model"
+	rsmodelversion "github.com/gravitino/terraform-provider-gravitino/internal/resources/model_version"
 	rsowner "github.com/gravitino/terraform-provider-gravitino/internal/resources/owner"
 	rspartition "github.com/gravitino/terraform-provider-gravitino/internal/resources/partition"
 	rspolicy "github.com/gravitino/terraform-provider-gravitino/internal/resources/policy"
@@ -171,10 +175,14 @@ func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.D
 		dscatalog.NewGetDataSource,
 		dsjob.NewListDataSource,
 		dsjob.NewGetDataSource,
+		dsjobtemplate.NewJobTemplateDataSource,
+		dsjobtemplate.NewJobTemplatesDataSource,
 		dsschema.NewSchemaDataSource,
 		dsschema.NewSchemasDataSource,
 		dsmodel.NewModelDataSource,
 		dsmodel.NewModelsDataSource,
+		dsmodelversion.NewModelVersionDataSource,
+		dsmodelversion.NewModelVersionsDataSource,
 		dstag.NewListDataSource,
 		dstag.NewGetDataSource,
 		dsview.NewViewsDataSource,
@@ -214,8 +222,10 @@ func (p *GravitinoProvider) Resources(_ context.Context) []func() resource.Resou
 		rscatalog.New,
 		rsfileset.New,
 		rsjob.New,
+		rsjobtemplate.NewJobTemplateResource,
 		rsschema.NewSchemaResource,
 		rsmodel.New,
+		rsmodelversion.NewModelVersionResource,
 		rsowner.NewOwnerResource,
 		rstable.NewTableResource,
 		rstag.New,

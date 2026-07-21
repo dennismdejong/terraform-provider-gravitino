@@ -62,3 +62,103 @@ func (c *Client) DropModel(metalake, catalog, schema, model string) (*models.Dro
 	err := c.Delete(path, &result)
 	return &result, err
 }
+
+func (c *Client) ListModelVersions(metalake, catalog, schema, model string) (*models.ModelVersionListResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model))
+	var result models.ModelVersionListResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) LinkModelVersion(metalake, catalog, schema, model string, req *models.ModelVersionLinkRequest) (*models.ModelVersionResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model))
+	var result models.ModelVersionResponse
+	if err := c.Post(path, req, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) GetModelVersion(metalake, catalog, schema, model, version string) (*models.ModelVersionResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(version))
+	var result models.ModelVersionResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) UpdateModelVersion(metalake, catalog, schema, model, version string, req *models.ModelVersionLinkRequest) (*models.ModelVersionResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(version))
+	var result models.ModelVersionResponse
+	if err := c.Put(path, req, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) DeleteModelVersion(metalake, catalog, schema, model, version string) (*models.DropResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(version))
+	var result models.DropResponse
+	if err := c.Delete(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) GetModelVersionByAlias(metalake, catalog, schema, model, alias string) (*models.ModelVersionResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/aliases/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(alias))
+	var result models.ModelVersionResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) DeleteModelVersionByAlias(metalake, catalog, schema, model, alias string) (*models.DropResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/aliases/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(alias))
+	var result models.DropResponse
+	if err := c.Delete(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) UpdateModelVersionByAlias(metalake, catalog, schema, model, alias string, req *models.ModelVersionLinkRequest) (*models.ModelVersionResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/aliases/%s",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(alias))
+	var result models.ModelVersionResponse
+	if err := c.Put(path, req, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) GetModelVersionURI(metalake, catalog, schema, model, version string) (*models.ModelVersionURIResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/%s/uri",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(version))
+	var result models.ModelVersionURIResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) GetModelVersionURIByAlias(metalake, catalog, schema, model, alias string) (*models.ModelVersionURIResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/models/%s/versions/aliases/%s/uri",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(model), url.PathEscape(alias))
+	var result models.ModelVersionURIResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

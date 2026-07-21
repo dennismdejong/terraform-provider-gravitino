@@ -126,6 +126,10 @@ func (c *Client) Delete(path string, result interface{}) error {
 	return c.do(http.MethodDelete, path, nil, result)
 }
 
+func (c *Client) Patch(path string, body, result interface{}) error {
+	return c.do(http.MethodPatch, path, body, result)
+}
+
 func (c *Client) BaseURL() string {
 	return c.baseURL
 }

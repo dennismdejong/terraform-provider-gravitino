@@ -51,3 +51,13 @@ func (c *Client) DropCatalog(metalake, name string, force bool) (*models.DropRes
 	err := c.Delete(path, &result)
 	return &result, err
 }
+
+func (c *Client) TestCatalogConnection(metalake, catalogName string, testReq interface{}) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/test",
+		url.PathEscape(metalake), url.PathEscape(catalogName))
+	var result models.BaseResponse
+	if err := c.Post(path, testReq, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

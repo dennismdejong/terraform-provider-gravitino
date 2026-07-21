@@ -54,3 +54,14 @@ func NewRemoveFilesetPropertyRequest(property string) interface{} {
 		Property string `json:"property"`
 	}{Type: "removeProperty", Property: property}
 }
+
+type FilesetFile struct {
+	Name string `json:"name"`
+	Size int64  `json:"size"`
+	Path string `json:"path"`
+}
+
+type FilesetFileListResponse struct {
+	Code  int32         `json:"code"`
+	Files []FilesetFile `json:"files"`
+}

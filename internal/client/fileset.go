@@ -62,3 +62,13 @@ func (c *Client) ListFilesetsDetails(metalake, catalog, schema string) ([]models
 	}
 	return filesets, nil
 }
+
+func (c *Client) ListFilesetFiles(metalake, catalog, schema, fileset string) (*models.FilesetFileListResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/filesets/%s/files",
+		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(fileset))
+	var result models.FilesetFileListResponse
+	if err := c.Get(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

@@ -22,3 +22,43 @@ func (c *Client) ListPartitionStatistics(metalake, catalog, schema, table string
 	err := c.Get(path, &result)
 	return &result, err
 }
+
+func (c *Client) UpdateStatistics(metalake, objType, objFullName string, body interface{}) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics",
+		url.PathEscape(metalake), url.PathEscape(objType), url.PathEscape(objFullName))
+	var result models.BaseResponse
+	if err := c.Put(path, body, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) DeleteStatistics(metalake, objType, objFullName string) (*models.DropResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics",
+		url.PathEscape(metalake), url.PathEscape(objType), url.PathEscape(objFullName))
+	var result models.DropResponse
+	if err := c.Delete(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) UpdatePartitionStatistics(metalake, objType, objFullName string, body interface{}) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics/partitions",
+		url.PathEscape(metalake), url.PathEscape(objType), url.PathEscape(objFullName))
+	var result models.BaseResponse
+	if err := c.Put(path, body, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) DeletePartitionStatistics(metalake, objType, objFullName string) (*models.DropResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics/partitions",
+		url.PathEscape(metalake), url.PathEscape(objType), url.PathEscape(objFullName))
+	var result models.DropResponse
+	if err := c.Delete(path, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}

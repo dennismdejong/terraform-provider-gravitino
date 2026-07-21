@@ -32,12 +32,29 @@ type JobStatusResponse struct {
 	Status string `json:"status"`
 }
 
+type JobTemplateCreateRequest struct {
+	Name       string            `json:"name"`
+	Template   string            `json:"template"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+	Comment    string            `json:"comment,omitempty"`
+	Properties map[string]string `json:"properties,omitempty"`
+}
+
+type JobTemplateResponse struct {
+	Code        int32       `json:"code"`
+	JobTemplate JobTemplate `json:"jobTemplate"`
+}
+
 type JobTemplate struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
+	Name       string            `json:"name"`
+	Template   string            `json:"template"`
+	Parameters map[string]string `json:"parameters,omitempty"`
+	Comment    string            `json:"comment,omitempty"`
+	Properties map[string]string `json:"properties,omitempty"`
+	Audit      *Audit            `json:"audit,omitempty"`
 }
 
 type JobTemplateListResponse struct {
-	Code      int           `json:"code"`
-	Templates []JobTemplate `json:"templates"`
+	Code         int32         `json:"code"`
+	JobTemplates []JobTemplate `json:"jobTemplates"`
 }

@@ -37,3 +37,13 @@ func (c *Client) DropMetalake(name string, force bool) (*models.DropResponse, er
 	err := c.Delete(path, &result)
 	return &result, err
 }
+
+func (c *Client) SetMetalakeInUse(metalake string, inUse bool) (*models.BaseResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s", url.PathEscape(metalake))
+	var result models.BaseResponse
+	body := map[string]bool{"inUse": inUse}
+	if err := c.Put(path, body, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
