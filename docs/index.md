@@ -25,8 +25,16 @@ provider "gravitino" {
 
 ### Optional
 
-- `auth` (String) Authentication method: 'basic' or 'oauth'. Can also be set via GRAVITINO_AUTH environment variable.
+- `auth` (String) Authentication method: 'simple', 'basic', 'oauth', or 'kerberos'. Can also be set via GRAVITINO_AUTH environment variable.
+- `kerberos_keytab` (String, Sensitive) Path to Kerberos keytab file. Can also be set via GRAVITINO_KERBEROS_KEYTAB environment variable.
+- `kerberos_principal` (String) Kerberos principal (e.g. HTTP/server@REALM). Can also be set via GRAVITINO_KERBEROS_PRINCIPAL environment variable.
+- `kerberos_use_ticket_cache` (Boolean) Use Kerberos ticket cache instead of keytab. Can also be set via GRAVITINO_KERBEROS_USE_TICKET_CACHE environment variable.
+- `oauth_client_id` (String) OAuth2 client ID for client credentials flow. Can also be set via GRAVITINO_OAUTH_CLIENT_ID environment variable.
+- `oauth_client_secret` (String, Sensitive) OAuth2 client secret for client credentials flow. Can also be set via GRAVITINO_OAUTH_CLIENT_SECRET environment variable.
+- `oauth_scope` (String) OAuth2 scope for client credentials flow. Can also be set via GRAVITINO_OAUTH_SCOPE environment variable.
+- `oauth_server_uri` (String) OAuth2 server URI for client credentials flow. Can also be set via GRAVITINO_OAUTH_SERVER_URI environment variable.
 - `oauth_token` (String, Sensitive) OAuth2 bearer token. Can also be set via GRAVITINO_OAUTH_TOKEN environment variable.
+- `oauth_token_path` (String) OAuth2 token endpoint path (e.g. /oauth2/token). Can also be set via GRAVITINO_OAUTH_TOKEN_PATH environment variable.
 - `password` (String, Sensitive) Password for basic authentication. Can also be set via GRAVITINO_PASSWORD environment variable.
 - `uri` (String) The URI of the Gravitino server. Can also be set via GRAVITINO_URI environment variable.
-- `username` (String) Username for basic authentication. Can also be set via GRAVITINO_USERNAME environment variable.
+- `username` (String) Username for simple/basic authentication. Can also be set via GRAVITINO_USERNAME environment variable.
