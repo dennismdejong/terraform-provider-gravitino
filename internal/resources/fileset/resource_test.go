@@ -47,7 +47,7 @@ func TestFilesetResource_Create(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.FilesetResource).SetClient(c)
 
@@ -194,7 +194,7 @@ func TestFilesetResource_Delete(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.FilesetResource).SetClient(c)
 

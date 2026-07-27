@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gravitino/terraform-provider-gravitino/internal/client/auth"
 	"github.com/gravitino/terraform-provider-gravitino/internal/models"
 )
 
@@ -21,38 +22,30 @@ const (
 )
 
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
-	auth       string
-	username   string
-	password   string
-	oauthToken string
+	baseURL      string
+	httpClient   *http.Client
+	authProvider auth.AuthProvider
 }
 
-func New(uri, auth, username, password, oauthToken string) (*Client, error) {
+func New(uri string, authProvider auth.AuthProvider) (*Client, error) {
 	u, err := url.Parse(strings.TrimRight(uri, "/"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid URI: %w", err)
 	}
 
-	return &Client{
+	c := &Client{
 		baseURL: u.String(),
 		httpClient: &http.Client{
 			Timeout: defaultTimeout,
 		},
-		auth:       auth,
-		username:   username,
-		password:   password,
-		oauthToken: oauthToken,
-	}, nil
-}
-
-func (c *Client) setAuth(req *http.Request) {
-	if c.auth == "oauth" && c.oauthToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.oauthToken)
-	} else if c.auth == "basic" && c.username != "" {
-		req.SetBasicAuth(c.username, c.password)
+		authProvider: authProvider,
 	}
+
+	if tp, ok := authProvider.(auth.TransportProvider); ok {
+		c.httpClient.Transport = tp.WrapTransport(http.DefaultTransport)
+	}
+
+	return c, nil
 }
 
 func (c *Client) doRequest(method, path string, body interface{}) (*http.Response, error) {
@@ -75,7 +68,15 @@ func (c *Client) doRequest(method, path string, body interface{}) (*http.Respons
 		req.Header.Set("Content-Type", plainContentType)
 	}
 
-	c.setAuth(req)
+	if c.authProvider != nil {
+		key, value, err := c.authProvider.Header(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("auth header failed: %w", err)
+		}
+		if key != "" && value != "" {
+			req.Header.Set(key, value)
+		}
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

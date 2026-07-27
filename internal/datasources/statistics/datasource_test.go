@@ -49,7 +49,7 @@ func TestStatisticsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.New()
 	d.(*ds.StatisticsDataSource).SetClient(c)
 
@@ -138,7 +138,7 @@ func TestPartitionStatisticsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewPartition()
 	d.(*ds.PartitionStatisticsDataSource).SetClient(c)
 

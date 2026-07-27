@@ -51,7 +51,7 @@ func TestTagsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewListDataSource()
 	d.(*ds.TagsDataSource).SetClient(c)
 
@@ -128,7 +128,7 @@ func TestTagDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewGetDataSource()
 	d.(*ds.TagDataSource).SetClient(c)
 

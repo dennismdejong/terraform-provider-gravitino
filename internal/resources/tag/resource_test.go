@@ -45,7 +45,7 @@ func TestTagResource_Create(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.TagResource).SetClient(c)
 
@@ -184,7 +184,7 @@ func TestTagResource_Delete(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.TagResource).SetClient(c)
 

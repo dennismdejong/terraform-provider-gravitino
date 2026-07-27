@@ -42,7 +42,7 @@ func TestGroupsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewListDataSource()
 	d.(*ds.GroupsDataSource).SetClient(c)
 
@@ -115,7 +115,7 @@ func TestGroupDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewGetDataSource()
 	d.(*ds.GroupDataSource).SetClient(c)
 

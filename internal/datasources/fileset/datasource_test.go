@@ -56,7 +56,7 @@ func TestFilesetsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewListDataSource()
 	d.(*ds.FilesetsDataSource).SetClient(c)
 
@@ -139,7 +139,7 @@ func TestFilesetDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewGetDataSource()
 	d.(*ds.FilesetDataSource).SetClient(c)
 
