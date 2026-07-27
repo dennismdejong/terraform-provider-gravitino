@@ -38,13 +38,21 @@ export GRAVITINO_OAUTH_TOKEN="eyJ..."
 
 The provider supports the following arguments:
 
-| Argument      | Environment Variable       | Description                                 |
-|---------------|----------------------------|---------------------------------------------|
-| `uri`         | `GRAVITINO_URI`            | The URI of the Gravitino server.            |
-| `auth`        | `GRAVITINO_AUTH`           | Authentication method: `basic` or `oauth`.  |
-| `username`    | `GRAVITINO_USERNAME`       | Username for basic authentication.          |
-| `password`    | `GRAVITINO_PASSWORD`       | Password for basic authentication.          |
-| `oauth_token` | `GRAVITINO_OAUTH_TOKEN`    | OAuth2 bearer token.                        |
+| Attribute | Type | Env Variable | Description |
+|-----------|------|-------------|-------------|
+| `uri` | `string` | `GRAVITINO_URI` | Gravitino server URI |
+| `auth` | `string` | `GRAVITINO_AUTH` | Auth method: `simple`, `basic`, `oauth`, or `kerberos` |
+| `username` | `string` | `GRAVITINO_USERNAME` | Username (simple/basic auth) |
+| `password` | `string` (sensitive) | `GRAVITINO_PASSWORD` | Password (basic auth) |
+| `oauth_token` | `string` (sensitive) | `GRAVITINO_OAUTH_TOKEN` | Static OAuth2 bearer token |
+| `oauth_client_id` | `string` | `GRAVITINO_OAUTH_CLIENT_ID` | OAuth2 client ID (client credentials flow) |
+| `oauth_client_secret` | `string` (sensitive) | `GRAVITINO_OAUTH_CLIENT_SECRET` | OAuth2 client secret |
+| `oauth_server_uri` | `string` | `GRAVITINO_OAUTH_SERVER_URI` | OAuth2 server URI |
+| `oauth_token_path` | `string` | `GRAVITINO_OAUTH_TOKEN_PATH` | OAuth2 token endpoint path |
+| `oauth_scope` | `string` | `GRAVITINO_OAUTH_SCOPE` | OAuth2 scope |
+| `kerberos_principal` | `string` | `GRAVITINO_KERBEROS_PRINCIPAL` | Kerberos principal |
+| `kerberos_keytab` | `string` (sensitive) | `GRAVITINO_KERBEROS_KEYTAB` | Path to keytab file |
+| `kerberos_use_ticket_cache` | `bool` | `GRAVITINO_KERBEROS_USE_TICKET_CACHE` | Use OS ticket cache |
 
 ### Creating a Metalake
 
