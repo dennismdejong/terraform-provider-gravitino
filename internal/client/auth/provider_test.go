@@ -8,4 +8,6 @@ import (
 
 func TestAuthProviderInterface(t *testing.T) {
 	var _ auth.AuthProvider = (*auth.SimpleProvider)(nil)
+
+	// TODO: Add TransportProvider compile-time check when KerberosProvider is implemented
 }
