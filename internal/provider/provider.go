@@ -2,9 +2,12 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/gravitino/terraform-provider-gravitino/internal/client"
+	"github.com/gravitino/terraform-provider-gravitino/internal/client/auth"
 	dsauthentication "github.com/gravitino/terraform-provider-gravitino/internal/datasources/authentication"
 	dscatalog "github.com/gravitino/terraform-provider-gravitino/internal/datasources/catalog"
 	dscredential "github.com/gravitino/terraform-provider-gravitino/internal/datasources/credential"
@@ -65,11 +68,25 @@ type GravitinoProvider struct {
 }
 
 type GravitinoProviderModel struct {
-	URI        types.String `tfsdk:"uri"`
-	Auth       types.String `tfsdk:"auth"`
-	Username   types.String `tfsdk:"username"`
-	Password   types.String `tfsdk:"password"`
-	OAuthToken types.String `tfsdk:"oauth_token"`
+	URI      types.String `tfsdk:"uri"`
+	Auth     types.String `tfsdk:"auth"`
+
+	// Simple / Basic
+	Username types.String `tfsdk:"username"`
+	Password types.String `tfsdk:"password"`
+
+	// OAuth static + client credentials
+	OAuthToken        types.String `tfsdk:"oauth_token"`
+	OAuthClientID     types.String `tfsdk:"oauth_client_id"`
+	OAuthClientSecret types.String `tfsdk:"oauth_client_secret"`
+	OAuthServerURI    types.String `tfsdk:"oauth_server_uri"`
+	OAuthTokenPath    types.String `tfsdk:"oauth_token_path"`
+	OAuthScope        types.String `tfsdk:"oauth_scope"`
+
+	// Kerberos
+	KerberosPrincipal      types.String `tfsdk:"kerberos_principal"`
+	KerberosKeytab         types.String `tfsdk:"kerberos_keytab"`
+	KerberosUseTicketCache types.Bool   `tfsdk:"kerberos_use_ticket_cache"`
 }
 
 func New(version string) func() provider.Provider {
@@ -94,14 +111,14 @@ func (p *GravitinoProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 			},
 		"auth": schema.StringAttribute{
 			Optional:    true,
-			Description: "Authentication method: 'basic' or 'oauth'. Can also be set via GRAVITINO_AUTH environment variable.",
+			Description: "Authentication method: 'simple', 'basic', 'oauth', or 'kerberos'. Can also be set via GRAVITINO_AUTH environment variable.",
 			Validators: []validator.String{
-				stringvalidator.OneOf("basic", "oauth"),
+				stringvalidator.OneOf("simple", "basic", "oauth", "kerberos"),
 			},
 		},
 			"username": schema.StringAttribute{
 				Optional:    true,
-				Description: "Username for basic authentication. Can also be set via GRAVITINO_USERNAME environment variable.",
+				Description: "Username for simple/basic authentication. Can also be set via GRAVITINO_USERNAME environment variable.",
 			},
 			"password": schema.StringAttribute{
 				Optional:    true,
@@ -112,6 +129,40 @@ func (p *GravitinoProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 				Optional:    true,
 				Sensitive:   true,
 				Description: "OAuth2 bearer token. Can also be set via GRAVITINO_OAUTH_TOKEN environment variable.",
+			},
+			"oauth_client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "OAuth2 client ID for client credentials flow. Can also be set via GRAVITINO_OAUTH_CLIENT_ID environment variable.",
+			},
+			"oauth_client_secret": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "OAuth2 client secret for client credentials flow. Can also be set via GRAVITINO_OAUTH_CLIENT_SECRET environment variable.",
+			},
+			"oauth_server_uri": schema.StringAttribute{
+				Optional:    true,
+				Description: "OAuth2 server URI for client credentials flow. Can also be set via GRAVITINO_OAUTH_SERVER_URI environment variable.",
+			},
+			"oauth_token_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "OAuth2 token endpoint path (e.g. /oauth2/token). Can also be set via GRAVITINO_OAUTH_TOKEN_PATH environment variable.",
+			},
+			"oauth_scope": schema.StringAttribute{
+				Optional:    true,
+				Description: "OAuth2 scope for client credentials flow. Can also be set via GRAVITINO_OAUTH_SCOPE environment variable.",
+			},
+			"kerberos_principal": schema.StringAttribute{
+				Optional:    true,
+				Description: "Kerberos principal (e.g. HTTP/server@REALM). Can also be set via GRAVITINO_KERBEROS_PRINCIPAL environment variable.",
+			},
+			"kerberos_keytab": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Path to Kerberos keytab file. Can also be set via GRAVITINO_KERBEROS_KEYTAB environment variable.",
+			},
+			"kerberos_use_ticket_cache": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Use Kerberos ticket cache instead of keytab. Can also be set via GRAVITINO_KERBEROS_USE_TICKET_CACHE environment variable.",
 			},
 		},
 	}
@@ -137,27 +188,39 @@ func (p *GravitinoProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	auth := os.Getenv("GRAVITINO_AUTH")
-	if !config.Auth.IsNull() {
-		auth = config.Auth.ValueString()
+	authMethod := readConfigString(config.Auth, "GRAVITINO_AUTH")
+	username := readConfigString(config.Username, "GRAVITINO_USERNAME")
+	password := readConfigString(config.Password, "GRAVITINO_PASSWORD")
+	oauthToken := readConfigString(config.OAuthToken, "GRAVITINO_OAUTH_TOKEN")
+	oauthClientID := readConfigString(config.OAuthClientID, "GRAVITINO_OAUTH_CLIENT_ID")
+	oauthClientSecret := readConfigString(config.OAuthClientSecret, "GRAVITINO_OAUTH_CLIENT_SECRET")
+	oauthServerURI := readConfigString(config.OAuthServerURI, "GRAVITINO_OAUTH_SERVER_URI")
+	oauthTokenPath := readConfigString(config.OAuthTokenPath, "GRAVITINO_OAUTH_TOKEN_PATH")
+	oauthScope := readConfigString(config.OAuthScope, "GRAVITINO_OAUTH_SCOPE")
+	kerberosPrincipal := readConfigString(config.KerberosPrincipal, "GRAVITINO_KERBEROS_PRINCIPAL")
+	kerberosKeytab := readConfigString(config.KerberosKeytab, "GRAVITINO_KERBEROS_KEYTAB")
+
+	kerberosUseTicketCache := false
+	if envVal := os.Getenv("GRAVITINO_KERBEROS_USE_TICKET_CACHE"); envVal != "" {
+		kerberosUseTicketCache, _ = strconv.ParseBool(envVal)
+	}
+	if !config.KerberosUseTicketCache.IsNull() {
+		kerberosUseTicketCache = config.KerberosUseTicketCache.ValueBool()
 	}
 
-	username := os.Getenv("GRAVITINO_USERNAME")
-	if !config.Username.IsNull() {
-		username = config.Username.ValueString()
+	ap, err := buildAuthProvider(authMethod, username, password, oauthToken,
+		oauthClientID, oauthClientSecret, oauthServerURI, oauthTokenPath, oauthScope,
+		kerberosPrincipal, kerberosKeytab, kerberosUseTicketCache)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("auth"),
+			"Invalid authentication configuration",
+			err.Error(),
+		)
+		return
 	}
 
-	password := os.Getenv("GRAVITINO_PASSWORD")
-	if !config.Password.IsNull() {
-		password = config.Password.ValueString()
-	}
-
-	oauthToken := os.Getenv("GRAVITINO_OAUTH_TOKEN")
-	if !config.OAuthToken.IsNull() {
-		oauthToken = config.OAuthToken.ValueString()
-	}
-
-	c, err := client.New(uri, auth, username, password, oauthToken)
+	c, err := client.New(uri, ap)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to create client", err.Error())
 		return
@@ -165,6 +228,40 @@ func (p *GravitinoProvider) Configure(ctx context.Context, req provider.Configur
 
 	resp.DataSourceData = c
 	resp.ResourceData = c
+}
+
+func readConfigString(val types.String, envVar string) string {
+	if !val.IsNull() {
+		return val.ValueString()
+	}
+	return os.Getenv(envVar)
+}
+
+func buildAuthProvider(authMethod, username, password, oauthToken, oauthClientID, oauthClientSecret, oauthServerURI, oauthTokenPath, oauthScope, kerberosPrincipal, kerberosKeytab string, kerberosUseTicketCache bool) (auth.AuthProvider, error) {
+	switch authMethod {
+	case "simple":
+		return auth.NewSimpleProvider(username), nil
+	case "basic":
+		if username == "" {
+			return nil, fmt.Errorf("username is required for basic authentication")
+		}
+		return auth.NewBasicProvider(username, password), nil
+	case "oauth":
+		if oauthToken != "" {
+			return auth.NewOAuthStaticProvider(oauthToken), nil
+		}
+		if oauthClientID != "" && oauthClientSecret != "" && oauthServerURI != "" && oauthTokenPath != "" {
+			return auth.NewOAuthCredentialsProvider(oauthClientID, oauthClientSecret, oauthServerURI, oauthTokenPath, oauthScope), nil
+		}
+		return nil, fmt.Errorf("oauth requires either oauth_token (static) or oauth_client_id + oauth_client_secret + oauth_server_uri + oauth_token_path (client credentials)")
+	case "kerberos":
+		if kerberosPrincipal == "" {
+			return nil, fmt.Errorf("kerberos_principal is required for kerberos authentication")
+		}
+		return auth.NewKerberosProvider(kerberosPrincipal, kerberosKeytab, kerberosUseTicketCache)
+	default:
+		return nil, nil
+	}
 }
 
 func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.DataSource {
