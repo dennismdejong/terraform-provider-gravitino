@@ -113,7 +113,7 @@ func (p *GravitinoProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 			Optional:    true,
 			Description: "Authentication method: 'simple', 'basic', 'oauth', or 'kerberos'. Can also be set via GRAVITINO_AUTH environment variable.",
 			Validators: []validator.String{
-				stringvalidator.OneOf("simple", "basic", "oauth", "kerberos"),
+				stringvalidator.OneOf("simple", "basic", "oauth", "kerberos", "none"),
 			},
 		},
 			"username": schema.StringAttribute{
@@ -239,6 +239,8 @@ func readConfigString(val types.String, envVar string) string {
 
 func buildAuthProvider(authMethod, username, password, oauthToken, oauthClientID, oauthClientSecret, oauthServerURI, oauthTokenPath, oauthScope, kerberosPrincipal, kerberosKeytab string, kerberosUseTicketCache bool) (auth.AuthProvider, error) {
 	switch authMethod {
+	case "", "none":
+		return nil, nil
 	case "simple":
 		return auth.NewSimpleProvider(username), nil
 	case "basic":
