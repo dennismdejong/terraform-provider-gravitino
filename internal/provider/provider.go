@@ -260,7 +260,7 @@ func buildAuthProvider(authMethod, username, password, oauthToken, oauthClientID
 		}
 		return auth.NewKerberosProvider(kerberosPrincipal, kerberosKeytab, kerberosUseTicketCache)
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("unknown authentication method: %q", authMethod)
 	}
 }
 
