@@ -9,14 +9,84 @@ description: |-
 
 The Gravitino provider allows you to manage [Apache Gravitino](https://gravitino.apache.org) resources including metalakes, catalogs, schemas, tables, filesets, topics, views, functions, models, partitions, tags, policies, and jobs.
 
-## Example Usage
+## Authentication
+
+The provider supports five authentication methods: `none` (default), `simple`, `basic`, `oauth`, and `kerberos`. Set the `auth` attribute to choose a method.
+
+### None (no authentication)
+
+```hcl
+provider "gravitino" {
+  uri  = "http://localhost:8090"
+  auth = "none"
+}
+```
+
+### Simple (OS user)
+
+Uses the current OS user or the `GRAVITINO_USER` environment variable.
+
+```hcl
+provider "gravitino" {
+  uri  = "http://localhost:8090"
+  auth = "simple"
+}
+```
+
+### Basic (username/password)
 
 ```hcl
 provider "gravitino" {
   uri      = "http://localhost:8090"
   auth     = "basic"
   username = "admin"
-  password = "admin"
+  password = var.gravitino_password
+}
+```
+
+### OAuth2 static bearer token
+
+```hcl
+provider "gravitino" {
+  uri         = "http://localhost:8090"
+  auth        = "oauth"
+  oauth_token = var.gravitino_token
+}
+```
+
+### OAuth2 client credentials flow (auto-refresh)
+
+```hcl
+provider "gravitino" {
+  uri                = "http://localhost:8090"
+  auth               = "oauth"
+  oauth_client_id     = var.oauth_client_id
+  oauth_client_secret = var.oauth_client_secret
+  oauth_server_uri    = "http://localhost:8177"
+  oauth_token_path    = "/oauth2/token"
+  oauth_scope         = "test"
+}
+```
+
+### Kerberos (keytab)
+
+```hcl
+provider "gravitino" {
+  uri                 = "http://gravitino.example.com"
+  auth                = "kerberos"
+  kerberos_principal  = "HTTP/gravitino.example.com@EXAMPLE.COM"
+  kerberos_keytab     = "/etc/security/gravitino.keytab"
+}
+```
+
+### Kerberos (ticket cache)
+
+```hcl
+provider "gravitino" {
+  uri                      = "http://gravitino.example.com"
+  auth                     = "kerberos"
+  kerberos_principal        = "HTTP/gravitino.example.com@EXAMPLE.COM"
+  kerberos_use_ticket_cache = true
 }
 ```
 
