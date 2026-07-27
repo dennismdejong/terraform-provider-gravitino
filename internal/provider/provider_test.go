@@ -26,9 +26,15 @@ func TestBuildAuthProvider(t *testing.T) {
 		wantNil bool
 	}{
 		{
-			name:    "empty auth is an error",
+			name:    "empty auth defaults to nil",
 			args:    args{authMethod: ""},
-			wantErr: true,
+			wantErr: false,
+			wantNil: true,
+		},
+		{
+			name:    "none auth defaults to nil",
+			args:    args{authMethod: "none"},
+			wantErr: false,
 			wantNil: true,
 		},
 		{
