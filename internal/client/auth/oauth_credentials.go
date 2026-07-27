@@ -18,6 +18,8 @@ type tokenResponse struct {
 	Scope       string `json:"scope"`
 }
 
+var tokenHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
 type OAuthCredentialsProvider struct {
 	clientID     string
 	clientSecret string
@@ -72,7 +74,7 @@ func (p *OAuthCredentialsProvider) refresh(ctx context.Context) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := tokenHTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

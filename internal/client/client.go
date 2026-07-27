@@ -131,6 +131,13 @@ func (c *Client) Patch(path string, body, result interface{}) error {
 	return c.do(http.MethodPatch, path, body, result)
 }
 
+func (c *Client) Close() error {
+	if closer, ok := c.authProvider.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
 func (c *Client) BaseURL() string {
 	return c.baseURL
 }

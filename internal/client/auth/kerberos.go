@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/user"
@@ -14,6 +15,15 @@ import (
 	"github.com/jcmturner/gokrb5/v8/keytab"
 	"github.com/jcmturner/gokrb5/v8/spnego"
 )
+
+func hasNegotiateChallenge(resp *http.Response) bool {
+	for _, v := range resp.Header["Www-Authenticate"] {
+		if v == "Negotiate" || v == "Negotiate " {
+			return true
+		}
+	}
+	return false
+}
 
 type KerberosProvider struct {
 	principal string
@@ -102,10 +112,30 @@ func (rt *spnegoRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 	if err := spnego.SetSPNEGOHeader(rt.client, req, ""); err != nil {
 		return nil, fmt.Errorf("kerberos authentication failed: %w", err)
 	}
-	if rt.base != nil {
-		return rt.base.RoundTrip(req)
+
+	base := rt.base
+	if base == nil {
+		base = http.DefaultTransport
 	}
-	return http.DefaultTransport.RoundTrip(req)
+
+	resp, err := base.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized && hasNegotiateChallenge(resp) {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+
+		retryReq := req.Clone(req.Context())
+		if err := spnego.SetSPNEGOHeader(rt.client, retryReq, ""); err != nil {
+			return nil, fmt.Errorf("kerberos authentication retry failed: %w", err)
+		}
+
+		return base.RoundTrip(retryReq)
+	}
+
+	return resp, nil
 }
 
 func extractRealm(principal string) string {
