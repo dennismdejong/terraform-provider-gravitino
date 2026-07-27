@@ -1,3 +1,26 @@
+## 0.3.0 (2026-07-27)
+
+BREAKING CHANGES: None
+
+FEATURES:
+- **Provider authentication:** Full support for all 4 Gravitino auth methods
+  - `simple` — OS user or `GRAVITINO_USER` environment variable
+  - `basic` — HTTP Basic authentication (unchanged)
+  - `oauth` — Static bearer token AND client credentials flow with auto-refresh
+  - `kerberos` — SPNEGO authentication via keytab or ticket cache
+
+ENHANCEMENTS:
+- Provider config expanded with 8 new attributes: `oauth_client_id`, `oauth_client_secret`, `oauth_server_uri`, `oauth_token_path`, `oauth_scope`, `kerberos_principal`, `kerberos_keytab`, `kerberos_use_ticket_cache`
+- Modular auth architecture for easier extensibility
+- OAuth2 token refresh with thread-safe caching (90% expiry margin)
+- Kerberos SPNEGO with 401 challenge-response retry handling
+- New `none` auth option for explicit no-authentication configuration
+
+NOTES:
+- `auth = "basic"` and `auth = "oauth"` with `oauth_token` remain fully backward compatible
+- Empty or unset `auth` still works (no authentication)
+- `gokrb5/v8` added as dependency for Kerberos support
+
 ## 0.1.0 (Unreleased)
 
 BREAKING CHANGES: None
