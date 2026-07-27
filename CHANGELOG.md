@@ -1,3 +1,17 @@
+## 0.3.1 (2026-07-27)
+
+BREAKING CHANGES: None
+
+ENHANCEMENTS:
+- **Documentation:** Provider docs now show all 7 auth method examples with HCL snippets
+- **Resource examples:** Enriched with more realistic configurations
+  - Table: added `sort_orders` and `distribution` example
+  - View: added `view_def` (SQL) and properties
+  - Function: added `function_body` and properties
+  - Partition: multiple partitions across different tables
+- **Complete deployment example:** New `examples/complete/main.tf` showing all resources working together in a realistic data platform scenario
+- **AGENTS.md:** Updated with auth architecture, missing resources (model_version, job_template), and gokrb5 dependency
+
 ## 0.3.0 (2026-07-27)
 
 BREAKING CHANGES: None
