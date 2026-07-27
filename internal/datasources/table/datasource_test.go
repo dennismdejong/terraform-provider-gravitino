@@ -30,7 +30,7 @@ func TestDataSourceListTables(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -130,7 +130,7 @@ func TestDataSourceGetTableFullDetail(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}

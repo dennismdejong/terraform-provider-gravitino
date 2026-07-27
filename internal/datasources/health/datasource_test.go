@@ -66,7 +66,7 @@ func TestHealthDataSource_Read(t *testing.T) {
 	server := setupHealthServer(t, "/api/health", "healthy", checks)
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewHealthDataSource()
 	d.(*ds.HealthDataSource).SetClient(c)
 
@@ -135,7 +135,7 @@ func TestLivenessDataSource_Read(t *testing.T) {
 	server := setupHealthServer(t, "/api/health/liveness", "alive", checks)
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewLivenessDataSource()
 	d.(*ds.LivenessDataSource).SetClient(c)
 
@@ -212,7 +212,7 @@ func TestReadinessDataSource_Read(t *testing.T) {
 	server := setupHealthServer(t, "/api/health/readiness", "ready", checks)
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewReadinessDataSource()
 	d.(*ds.ReadinessDataSource).SetClient(c)
 

@@ -53,7 +53,7 @@ func TestCatalogsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewListDataSource()
 	d.(*ds.CatalogsDataSource).SetClient(c)
 
@@ -132,7 +132,7 @@ func TestCatalogDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewGetDataSource()
 	d.(*ds.CatalogDataSource).SetClient(c)
 

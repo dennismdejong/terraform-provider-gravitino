@@ -110,7 +110,7 @@ func TestClientCreateTable(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -171,7 +171,7 @@ func TestClientGetTable(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -206,7 +206,7 @@ func TestClientListTables(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -235,7 +235,7 @@ func TestClientDropTable(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c, err := client.New(srv.URL, "", "", "", "")
+	c, err := client.New(srv.URL, nil)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}

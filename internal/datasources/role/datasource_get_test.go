@@ -45,7 +45,7 @@ func TestRoleDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewRoleDataSource()
 	d.(*ds.RoleDataSource).SetClient(c)
 
@@ -123,7 +123,7 @@ func TestRolesListDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewRolesListDataSource()
 	d.(*ds.RolesListDataSource).SetClient(c)
 

@@ -46,7 +46,7 @@ func TestCredentialsDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.New()
 	d.(*ds.CredentialsDataSource).SetClient(c)
 

@@ -50,7 +50,7 @@ func TestJobTemplatesDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewJobTemplatesDataSource()
 	d.(*ds.JobTemplatesDataSource).SetClient(c)
 
@@ -129,7 +129,7 @@ func TestJobTemplateDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewJobTemplateDataSource()
 	d.(*ds.JobTemplateDataSource).SetClient(c)
 

@@ -42,7 +42,7 @@ func TestUsersDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewListDataSource()
 	d.(*ds.UsersDataSource).SetClient(c)
 
@@ -116,7 +116,7 @@ func TestUserDataSource_Read(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	d := ds.NewGetDataSource()
 	d.(*ds.UserDataSource).SetClient(c)
 

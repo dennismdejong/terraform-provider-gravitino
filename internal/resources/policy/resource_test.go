@@ -49,7 +49,7 @@ func TestPolicyResource_Create(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.PolicyResource).SetClient(c)
 
@@ -208,7 +208,7 @@ func TestPolicyResource_Delete(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.PolicyResource).SetClient(c)
 

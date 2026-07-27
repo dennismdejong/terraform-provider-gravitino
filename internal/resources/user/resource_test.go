@@ -45,7 +45,7 @@ func TestUserResource_Create(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.UserResource).SetClient(c)
 
@@ -184,7 +184,7 @@ func TestUserResource_Delete(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.New()
 	r.(*res.UserResource).SetClient(c)
 

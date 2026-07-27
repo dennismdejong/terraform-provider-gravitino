@@ -16,7 +16,16 @@ func (c *Client) GetAuthenticatedPrincipal() (*models.PrincipalResponse, error) 
 	}
 
 	req.Header.Set("Accept", contentType)
-	c.setAuth(req)
+
+	if c.authProvider != nil {
+		key, value, err := c.authProvider.Header(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("auth header failed: %w", err)
+		}
+		if key != "" && value != "" {
+			req.Header.Set(key, value)
+		}
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

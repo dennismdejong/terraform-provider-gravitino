@@ -47,7 +47,7 @@ func TestMetalakeResource_Create(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.NewMetalakeResource()
 	r.(*res.MetalakeResource).SetClient(c)
 
@@ -108,7 +108,7 @@ func TestMetalakeResource_Delete(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c, _ := client.New(server.URL, "", "", "", "")
+	c, _ := client.New(server.URL, nil)
 	r := res.NewMetalakeResource()
 	r.(*res.MetalakeResource).SetClient(c)
 
