@@ -44,3 +44,7 @@ type Role struct {
 type PrivilegesRequest struct {
 	Privileges []Privilege `json:"privileges"`
 }
+
+type PrivilegeOverrideRequest struct {
+	Overrides []SecurableObject `json:"overrides"`
+}

@@ -27,6 +27,7 @@ import (
 	dspolicy "github.com/gravitino/terraform-provider-gravitino/internal/datasources/policy"
 	dsrole "github.com/gravitino/terraform-provider-gravitino/internal/datasources/role"
 	dsschema "github.com/gravitino/terraform-provider-gravitino/internal/datasources/schema"
+	dssecrets "github.com/gravitino/terraform-provider-gravitino/internal/datasources/secrets"
 	dsstatistics "github.com/gravitino/terraform-provider-gravitino/internal/datasources/statistics"
 	dstable "github.com/gravitino/terraform-provider-gravitino/internal/datasources/table"
 	dstag "github.com/gravitino/terraform-provider-gravitino/internal/datasources/tag"
@@ -307,6 +308,7 @@ func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.D
 		dshealth.NewReadinessDataSource,
 		dspolicy.NewListDataSource,
 		dscredential.New,
+		dssecrets.New,
 		dsrole.New,
 		dsrole.NewRoleDataSource,
 		dsrole.NewRolesListDataSource,

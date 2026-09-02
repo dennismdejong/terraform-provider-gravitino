@@ -260,25 +260,30 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	planSecurables := securableObjectMapFromTF(ctx, plan.SecurableObjects)
 	stateSecurables := securableObjectMapFromTF(ctx, state.SecurableObjects)
 
+	securablesChanged := false
 	for key, pso := range planSecurables {
 		sso, exists := stateSecurables[key]
 		if !exists || !privilegesEqual(pso.Privileges, sso.Privileges) {
-			if _, err := r.client.OverrideRolePrivileges(metalake, roleName, pso.Type, pso.FullName, pso.Privileges); err != nil {
-				resp.Diagnostics.Append(client.NewResourceError("updating role privileges", roleName, err)...)
-				return
+			securablesChanged = true
+			break
+		}
+	}
+	if !securablesChanged {
+		for key := range stateSecurables {
+			if _, exists := planSecurables[key]; !exists {
+				securablesChanged = true
+				break
 			}
-			changed = true
 		}
 	}
 
-	for key, sso := range stateSecurables {
-		if _, exists := planSecurables[key]; !exists {
-			if _, err := r.client.RevokePrivilegeFromRole(metalake, roleName, sso.Type, sso.FullName, sso.Privileges); err != nil {
-				resp.Diagnostics.Append(client.NewResourceError("updating role privileges", roleName, err)...)
-				return
-			}
-			changed = true
+	if securablesChanged {
+		overrides := securableObjectsFromTF(ctx, plan.SecurableObjects)
+		if _, err := r.client.OverrideRolePrivileges(metalake, roleName, overrides); err != nil {
+			resp.Diagnostics.Append(client.NewResourceError("updating role privileges", roleName, err)...)
+			return
 		}
+		changed = true
 	}
 
 	if !plan.Name.Equal(state.Name) {

@@ -29,7 +29,7 @@ func TestJobsDataSource_Schema(t *testing.T) {
 
 func TestJobsDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/jobs"
+		expectedPath := "/api/metalakes/test_metalake/jobs/runs"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}
@@ -109,7 +109,7 @@ func TestJobDataSource_Schema(t *testing.T) {
 
 func TestJobDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/jobs/test_job"
+		expectedPath := "/api/metalakes/test_metalake/jobs/runs/test_job"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}

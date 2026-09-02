@@ -69,10 +69,10 @@ func (c *Client) RevokePrivilegeFromRole(metalake, role, objectType, objectFullN
 	return &result, nil
 }
 
-func (c *Client) OverrideRolePrivileges(metalake, role, objectType, objectFullName string, privileges []models.Privilege) (*models.RoleResponse, error) {
-	path := fmt.Sprintf("/metalakes/%s/permissions/roles/%s/%s/%s/override", metalake, role, objectType, objectFullName)
+func (c *Client) OverrideRolePrivileges(metalake, role string, overrides []models.SecurableObject) (*models.RoleResponse, error) {
+	path := fmt.Sprintf("/metalakes/%s/permissions/roles/%s", metalake, role)
 	var result models.RoleResponse
-	if err := c.Put(path, &models.PrivilegesRequest{Privileges: privileges}, &result); err != nil {
+	if err := c.Put(path, &models.PrivilegeOverrideRequest{Overrides: overrides}, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
