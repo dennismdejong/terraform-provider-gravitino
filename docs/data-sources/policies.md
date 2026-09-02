@@ -23,8 +23,6 @@ data "gravitino_policies" "example" {
 ### Required
 
 - `metalake` (String) The metalake name.
-- `resource` (String) The metadata object name.
-- `resource_type` (String) The metadata object resource type. Must be one of: metalakes, catalogs, schemas, tables, filesets, topics.
 
 ### Read-Only
 
@@ -35,14 +33,14 @@ data "gravitino_policies" "example" {
 
 Read-Only:
 
-- `actions` (List of String) The list of actions.
 - `audit` (Object) Audit information for the policy. (see [below for nested schema](#nestedatt--policies--audit))
-- `condition` (String) The policy condition expression.
-- `effect` (String) The policy effect.
+- `comment` (String) The policy comment.
+- `custom_rules` (Map of String) The policy custom rules.
+- `enabled` (Boolean) Whether the policy is enabled.
 - `name` (String) The policy name.
-- `object` (String) The policy target object.
+- `policy_type` (String) The policy type.
 - `properties` (Map of String) The policy properties.
-- `subjects` (List of String) The list of subjects.
+- `supported_object_types` (List of String) The object types this policy supports.
 
 <a id="nestedatt--policies--audit"></a>
 ### Nested Schema for `policies.audit`

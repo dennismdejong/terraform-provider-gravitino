@@ -1,18 +1,18 @@
 resource "gravitino_policy" "data_retention" {
-  metalake      = gravitino_metalake.example.name
-  resource_type = "tables"
-  resource      = "orders"
-  name          = "data_retention"
-  effect        = "allow"
-}
+  metalake = gravitino_metalake.example.name
+  name     = "data_retention"
+  comment  = "Retain data for compliance"
 
-resource "gravitino_policy" "read_only" {
-  metalake      = gravitino_metalake.example.name
-  resource_type = "schemas"
-  resource      = "*"
-  name          = "read_only"
-  effect        = "deny"
-  actions       = ["write", "delete"]
-  subjects      = ["guest-user"]
-  condition     = "context.role != 'admin'"
+  policy_type = "custom"
+  enabled     = true
+
+  supported_object_types = ["CATALOG", "SCHEMA", "TABLE"]
+
+  properties = {
+    key1 = "value1"
+  }
+
+  custom_rules = {
+    rule1 = "123"
+  }
 }

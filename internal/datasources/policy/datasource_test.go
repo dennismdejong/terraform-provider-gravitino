@@ -34,12 +34,14 @@ func TestPoliciesDataSource_Read(t *testing.T) {
 			Policies: []models.Policy{
 				{
 					Name:       "policy1",
-					Condition:  "",
-					Effect:     "allow",
-					Actions:    []string{"read", "write"},
-					Subjects:   []string{"user1"},
-					Object:     "",
-					Properties: map[string]string{"key": "value"},
+					Comment:    "test policy",
+					PolicyType: "custom",
+					Enabled:    true,
+					Content: &models.PolicyContent{
+						SupportedObjectTypes: []string{"SCHEMA", "TABLE"},
+						Properties:           map[string]string{"key": "value"},
+						CustomRules:          map[string]string{"rule1": "123"},
+					},
 				},
 			},
 		}
@@ -60,17 +62,13 @@ func TestPoliciesDataSource_Read(t *testing.T) {
 	policiesListType := types.ListType{ElemType: policyItemObjType}
 
 	configModel := ds.PoliciesDataSourceModel{
-		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
-		Resource:     types.StringValue("test_catalog"),
-		Policies:     types.ListNull(policyItemObjType),
+		Metalake: types.StringValue("test_metalake"),
+		Policies: types.ListNull(policyItemObjType),
 	}
 
 	attrTypes := map[string]attr.Type{
-		"metalake":      types.StringType,
-		"resource_type": types.StringType,
-		"resource":      types.StringType,
-		"policies":      policiesListType,
+		"metalake": types.StringType,
+		"policies": policiesListType,
 	}
 
 	configObj, diags := types.ObjectValueFrom(ctx, attrTypes, configModel)

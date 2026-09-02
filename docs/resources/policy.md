@@ -13,22 +13,22 @@ description: |-
 
 ```terraform
 resource "gravitino_policy" "data_retention" {
-  metalake      = gravitino_metalake.example.name
-  resource_type = "tables"
-  resource      = "orders"
-  name          = "data_retention"
-  effect        = "allow"
-}
+  metalake = gravitino_metalake.example.name
+  name     = "data_retention"
+  comment  = "Retain data for compliance"
 
-resource "gravitino_policy" "read_only" {
-  metalake      = gravitino_metalake.example.name
-  resource_type = "schemas"
-  resource      = "*"
-  name          = "read_only"
-  effect        = "deny"
-  actions       = ["write", "delete"]
-  subjects      = ["guest-user"]
-  condition     = "context.role != 'admin'"
+  policy_type = "custom"
+  enabled     = true
+
+  supported_object_types = ["CATALOG", "SCHEMA", "TABLE"]
+
+  properties = {
+    key1 = "value1"
+  }
+
+  custom_rules = {
+    rule1 = "123"
+  }
 }
 ```
 
@@ -37,24 +37,22 @@ resource "gravitino_policy" "read_only" {
 
 ### Required
 
-- `effect` (String) The policy effect. Must be one of: allow, deny.
 - `metalake` (String) The metalake name.
 - `name` (String) The policy name.
-- `resource` (String) The metadata object name.
-- `resource_type` (String) The metadata object resource type. Must be one of: metalakes, catalogs, schemas, tables, filesets, topics.
+- `supported_object_types` (List of String) The object types this policy supports. One or more of: CATALOG, SCHEMA, TABLE, FILESET, TOPIC, MODEL.
 
 ### Optional
 
-- `actions` (List of String) The list of actions this policy applies to.
-- `condition` (String) The policy condition expression.
-- `object` (String) The policy target object.
+- `comment` (String) A comment or description for the policy.
+- `custom_rules` (Map of String) A map of custom rules for the policy. Non-string values must be encoded as JSON strings.
+- `enabled` (Boolean) Whether the policy is enabled.
+- `policy_type` (String) The policy type. Only 'custom' is currently supported.
 - `properties` (Map of String) A map of key-value properties for the policy.
-- `subjects` (List of String) The list of subjects this policy applies to.
 
 ### Read-Only
 
 - `audit` (Object) Audit information for the policy. (see [below for nested schema](#nestedatt--audit))
-- `id` (String) Composite identifier in the format 'metalake.resource_type.resource.policy_name'.
+- `id` (String) Composite identifier in the format 'metalake.policy_name'.
 
 <a id="nestedatt--audit"></a>
 ### Nested Schema for `audit`

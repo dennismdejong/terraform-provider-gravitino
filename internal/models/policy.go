@@ -1,68 +1,40 @@
 package models
 
+type PolicyContent struct {
+	SupportedObjectTypes []string          `json:"supportedObjectTypes"`
+	Properties           map[string]string `json:"properties,omitempty"`
+	CustomRules          map[string]string `json:"customRules,omitempty"`
+}
+
 type Policy struct {
-	Name       string            `json:"name"`
-	Condition  string            `json:"condition,omitempty"`
-	Effect     string            `json:"effect"`
-	Actions    []string          `json:"actions,omitempty"`
-	Subjects   []string          `json:"subjects,omitempty"`
-	Object     string            `json:"object,omitempty"`
-	Properties map[string]string `json:"properties,omitempty"`
-	Audit      *Audit            `json:"audit,omitempty"`
+	Name       string         `json:"name"`
+	Comment    string         `json:"comment,omitempty"`
+	PolicyType string         `json:"policyType"`
+	Enabled    bool           `json:"enabled"`
+	Content    *PolicyContent `json:"content,omitempty"`
+	Inherited  *bool          `json:"inherited,omitempty"`
+	Audit      *Audit         `json:"audit,omitempty"`
 }
 
 type PolicyListResponse struct {
-	Code     int      `json:"code"`
+	Code     int32    `json:"code"`
 	Policies []Policy `json:"policies"`
 }
 
 type PolicyResponse struct {
-	Code   int    `json:"code"`
+	Code   int32  `json:"code"`
 	Policy Policy `json:"policy"`
 }
 
 type PolicyCreateRequest struct {
-	Name       string            `json:"name"`
-	Condition  string            `json:"condition,omitempty"`
-	Effect     string            `json:"effect"`
-	Actions    []string          `json:"actions,omitempty"`
-	Subjects   []string          `json:"subjects,omitempty"`
-	Object     string            `json:"object,omitempty"`
-	Properties map[string]string `json:"properties,omitempty"`
+	Name       string         `json:"name"`
+	Comment    string         `json:"comment,omitempty"`
+	PolicyType string         `json:"policyType"`
+	Enabled    bool           `json:"enabled"`
+	Content    *PolicyContent `json:"content,omitempty"`
 }
 
-type PolicyUpdateRequest struct {
-	Updates []interface{} `json:"updates"`
-}
-
-func NewRenamePolicyRequest(newName string) interface{} {
-	return struct {
-		Type    string `json:"@type"`
-		NewName string `json:"newName"`
-	}{
-		Type:    "rename",
-		NewName: newName,
-	}
-}
-
-func NewSetPolicyPropertyRequest(property, value string) interface{} {
-	return struct {
-		Type     string `json:"@type"`
-		Property string `json:"property"`
-		Value    string `json:"value"`
-	}{
-		Type:     "setProperty",
-		Property: property,
-		Value:    value,
-	}
-}
-
-func NewRemovePolicyPropertyRequest(property string) interface{} {
-	return struct {
-		Type     string `json:"@type"`
-		Property string `json:"property"`
-	}{
-		Type:     "removeProperty",
-		Property: property,
-	}
+type PolicyAssociationRequest struct {
+	PoliciesToAdd    []string `json:"policiesToAdd,omitempty"`
+	PoliciesToRemove []string `json:"policiesToRemove,omitempty"`
 }

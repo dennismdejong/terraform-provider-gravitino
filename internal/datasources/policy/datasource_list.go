@@ -11,10 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 var _ datasource.DataSource = &PoliciesDataSource{}
@@ -33,32 +31,30 @@ func (d *PoliciesDataSource) SetClient(c *client.Client) {
 }
 
 type PoliciesDataSourceModel struct {
-	Metalake     types.String `tfsdk:"metalake"`
-	ResourceType types.String `tfsdk:"resource_type"`
-	Resource     types.String `tfsdk:"resource"`
-	Policies     types.List   `tfsdk:"policies"`
+	Metalake types.String `tfsdk:"metalake"`
+	Policies types.List   `tfsdk:"policies"`
 }
 
 type policyItemModel struct {
-	Name       types.String `tfsdk:"name"`
-	Condition  types.String `tfsdk:"condition"`
-	Effect     types.String `tfsdk:"effect"`
-	Actions    types.List   `tfsdk:"actions"`
-	Subjects   types.List   `tfsdk:"subjects"`
-	Object     types.String `tfsdk:"object"`
-	Properties types.Map    `tfsdk:"properties"`
-	Audit      types.Object `tfsdk:"audit"`
+	Name                 types.String `tfsdk:"name"`
+	Comment              types.String `tfsdk:"comment"`
+	PolicyType           types.String `tfsdk:"policy_type"`
+	Enabled              types.Bool   `tfsdk:"enabled"`
+	SupportedObjectTypes types.List   `tfsdk:"supported_object_types"`
+	Properties           types.Map    `tfsdk:"properties"`
+	CustomRules          types.Map    `tfsdk:"custom_rules"`
+	Audit                types.Object `tfsdk:"audit"`
 }
 
 var PolicyItemAttrTypes = map[string]attr.Type{
-	"name":       types.StringType,
-	"condition":  types.StringType,
-	"effect":     types.StringType,
-	"actions":    types.ListType{ElemType: types.StringType},
-	"subjects":   types.ListType{ElemType: types.StringType},
-	"object":     types.StringType,
-	"properties": types.MapType{ElemType: types.StringType},
-	"audit":      types.ObjectType{AttrTypes: AuditAttrTypes},
+	"name":                   types.StringType,
+	"comment":                types.StringType,
+	"policy_type":            types.StringType,
+	"enabled":                types.BoolType,
+	"supported_object_types": types.ListType{ElemType: types.StringType},
+	"properties":             types.MapType{ElemType: types.StringType},
+	"custom_rules":           types.MapType{ElemType: types.StringType},
+	"audit":                  types.ObjectType{AttrTypes: AuditAttrTypes},
 }
 
 var AuditAttrTypes = map[string]attr.Type{
@@ -94,17 +90,6 @@ func (d *PoliciesDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 				Required:    true,
 				Description: "The metalake name.",
 			},
-			"resource_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The metadata object resource type. Must be one of: metalakes, catalogs, schemas, tables, filesets, topics.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("metalakes", "catalogs", "schemas", "tables", "filesets", "topics", "models"),
-				},
-			},
-			"resource": schema.StringAttribute{
-				Required:    true,
-				Description: "The metadata object name.",
-			},
 			"policies": schema.ListNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
@@ -113,32 +98,32 @@ func (d *PoliciesDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 							Computed:    true,
 							Description: "The policy name.",
 						},
-						"condition": schema.StringAttribute{
+						"comment": schema.StringAttribute{
 							Computed:    true,
-							Description: "The policy condition expression.",
+							Description: "The policy comment.",
 						},
-						"effect": schema.StringAttribute{
+						"policy_type": schema.StringAttribute{
 							Computed:    true,
-							Description: "The policy effect.",
+							Description: "The policy type.",
 						},
-						"actions": schema.ListAttribute{
+						"enabled": schema.BoolAttribute{
+							Computed:    true,
+							Description: "Whether the policy is enabled.",
+						},
+						"supported_object_types": schema.ListAttribute{
 							Computed:    true,
 							ElementType: types.StringType,
-							Description: "The list of actions.",
-						},
-						"subjects": schema.ListAttribute{
-							Computed:    true,
-							ElementType: types.StringType,
-							Description: "The list of subjects.",
-						},
-						"object": schema.StringAttribute{
-							Computed:    true,
-							Description: "The policy target object.",
+							Description: "The object types this policy supports.",
 						},
 						"properties": schema.MapAttribute{
 							Computed:    true,
 							ElementType: types.StringType,
 							Description: "The policy properties.",
+						},
+						"custom_rules": schema.MapAttribute{
+							Computed:    true,
+							ElementType: types.StringType,
+							Description: "The policy custom rules.",
 						},
 						"audit": schema.ObjectAttribute{
 							Computed:       true,
@@ -159,7 +144,7 @@ func (d *PoliciesDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	result, err := d.client.ListPolicies(config.Metalake.ValueString(), config.ResourceType.ValueString(), config.Resource.ValueString())
+	result, err := d.client.ListPolicies(config.Metalake.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to list policies", err.Error())
 		return
@@ -199,29 +184,38 @@ func policyToItemModel(ctx context.Context, p *models.Policy, diags *diag.Diagno
 	}
 
 	item := &policyItemModel{
-		Name:      types.StringValue(p.Name),
-		Condition: types.StringValue(p.Condition),
-		Effect:    types.StringValue(p.Effect),
-		Object:    types.StringValue(p.Object),
+		Name:       types.StringValue(p.Name),
+		Comment:    types.StringValue(p.Comment),
+		PolicyType: types.StringValue(p.PolicyType),
+		Enabled:    types.BoolValue(p.Enabled),
 	}
 
-	actions, d := types.ListValueFrom(ctx, types.StringType, p.Actions)
+	var supportedObjectTypes []string
+	var properties map[string]string
+	var customRules map[string]string
+	if p.Content != nil {
+		supportedObjectTypes = p.Content.SupportedObjectTypes
+		properties = p.Content.Properties
+		customRules = p.Content.CustomRules
+	}
+
+	typesList, d := types.ListValueFrom(ctx, types.StringType, supportedObjectTypes)
 	if d.HasError() {
 		return nil
 	}
-	item.Actions = actions
+	item.SupportedObjectTypes = typesList
 
-	subjects, d := types.ListValueFrom(ctx, types.StringType, p.Subjects)
-	if d.HasError() {
-		return nil
-	}
-	item.Subjects = subjects
-
-	props, d := types.MapValueFrom(ctx, types.StringType, p.Properties)
+	props, d := types.MapValueFrom(ctx, types.StringType, properties)
 	if d.HasError() {
 		return nil
 	}
 	item.Properties = props
+
+	rules, d := types.MapValueFrom(ctx, types.StringType, customRules)
+	if d.HasError() {
+		return nil
+	}
+	item.CustomRules = rules
 
 	auditObj, d := auditToObjectValueForDS(ctx, p.Audit)
 	diags.Append(d...)

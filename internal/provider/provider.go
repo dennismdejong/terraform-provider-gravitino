@@ -15,6 +15,8 @@ import (
 	dsfunction "github.com/gravitino/terraform-provider-gravitino/internal/datasources/function"
 	dsgroup "github.com/gravitino/terraform-provider-gravitino/internal/datasources/group"
 	dshealth "github.com/gravitino/terraform-provider-gravitino/internal/datasources/health"
+	dsidpgroup "github.com/gravitino/terraform-provider-gravitino/internal/datasources/idp_group"
+	dsidpuser "github.com/gravitino/terraform-provider-gravitino/internal/datasources/idp_user"
 	dsjob "github.com/gravitino/terraform-provider-gravitino/internal/datasources/job"
 	dsjobtemplate "github.com/gravitino/terraform-provider-gravitino/internal/datasources/job_template"
 	dsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/datasources/metalake"
@@ -35,6 +37,8 @@ import (
 	rsfileset "github.com/gravitino/terraform-provider-gravitino/internal/resources/fileset"
 	rsfunction "github.com/gravitino/terraform-provider-gravitino/internal/resources/function"
 	rsgroup "github.com/gravitino/terraform-provider-gravitino/internal/resources/group"
+	rsidpgroup "github.com/gravitino/terraform-provider-gravitino/internal/resources/idp_group"
+	rsidpuser "github.com/gravitino/terraform-provider-gravitino/internal/resources/idp_user"
 	rsjob "github.com/gravitino/terraform-provider-gravitino/internal/resources/job"
 	rsjobtemplate "github.com/gravitino/terraform-provider-gravitino/internal/resources/job_template"
 	rsmetalake "github.com/gravitino/terraform-provider-gravitino/internal/resources/metalake"
@@ -312,6 +316,8 @@ func (p *GravitinoProvider) DataSources(_ context.Context) []func() datasource.D
 		dsowner.NewOwnerDataSource,
 		dsuser.NewListDataSource,
 		dsuser.NewGetDataSource,
+		dsidpuser.NewDataSource,
+		dsidpgroup.NewDataSource,
 	}
 }
 
@@ -336,5 +342,7 @@ func (p *GravitinoProvider) Resources(_ context.Context) []func() resource.Resou
 		rspolicy.New,
 		rsrole.NewRoleResource,
 		rsuser.New,
+		rsidpuser.New,
+		rsidpgroup.New,
 	}
 }

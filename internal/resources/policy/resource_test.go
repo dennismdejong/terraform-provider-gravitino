@@ -12,6 +12,7 @@ import (
 
 	"github.com/gravitino/terraform-provider-gravitino/internal/client"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,16 +33,23 @@ func TestPolicyResource_Create(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&receivedBody)
 
+		var content *models.PolicyContent
+		if receivedBody.Content != nil {
+			content = &models.PolicyContent{
+				SupportedObjectTypes: receivedBody.Content.SupportedObjectTypes,
+				Properties:           receivedBody.Content.Properties,
+				CustomRules:          receivedBody.Content.CustomRules,
+			}
+		}
+
 		resp := models.PolicyResponse{
 			Code: 0,
 			Policy: models.Policy{
 				Name:       receivedBody.Name,
-				Condition:  receivedBody.Condition,
-				Effect:     receivedBody.Effect,
-				Actions:    receivedBody.Actions,
-				Subjects:   receivedBody.Subjects,
-				Object:     receivedBody.Object,
-				Properties: receivedBody.Properties,
+				Comment:    receivedBody.Comment,
+				PolicyType: receivedBody.PolicyType,
+				Enabled:    receivedBody.Enabled,
+				Content:    content,
 			},
 		}
 		w.WriteHeader(http.StatusOK)
@@ -60,17 +68,18 @@ func TestPolicyResource_Create(t *testing.T) {
 	schemaObj := schemaResp.Schema
 
 	planModel := res.PolicyResourceModel{
-		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
-		Resource:     types.StringValue("test_catalog"),
-		Name:         types.StringValue("test_policy"),
-		Effect:       types.StringValue("allow"),
-		Condition:    types.StringNull(),
-		Actions:      types.ListNull(types.StringType),
-		Subjects:     types.ListNull(types.StringType),
-		Object:       types.StringNull(),
-		Properties:   types.MapNull(types.StringType),
-		Audit:        types.ObjectNull(res.AuditAttrTypes),
+		Metalake:   types.StringValue("test_metalake"),
+		Name:       types.StringValue("test_policy"),
+		Comment:    types.StringValue("test comment"),
+		PolicyType: types.StringValue("custom"),
+		Enabled:    types.BoolValue(true),
+		SupportedObjectTypes: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("SCHEMA"),
+			types.StringValue("TABLE"),
+		}),
+		Properties:  types.MapNull(types.StringType),
+		CustomRules: types.MapNull(types.StringType),
+		Audit:       types.ObjectNull(res.AuditAttrTypes),
 	}
 
 	planObj, diags := types.ObjectValueFrom(ctx, schemaObj.Type().(types.ObjectType).AttributeTypes(), planModel)
@@ -102,6 +111,15 @@ func TestPolicyResource_Create(t *testing.T) {
 	if receivedBody.Name != "test_policy" {
 		t.Errorf("expected name test_policy, got %s", receivedBody.Name)
 	}
+	if receivedBody.PolicyType != "custom" {
+		t.Errorf("expected policy_type custom, got %s", receivedBody.PolicyType)
+	}
+	if receivedBody.Content == nil {
+		t.Fatal("expected content in request")
+	}
+	if len(receivedBody.Content.SupportedObjectTypes) != 2 {
+		t.Errorf("expected 2 supported object types, got %d", len(receivedBody.Content.SupportedObjectTypes))
+	}
 }
 
 func TestPolicyResource_ImportState(t *testing.T) {
@@ -113,17 +131,15 @@ func TestPolicyResource_ImportState(t *testing.T) {
 	schemaObj := schemaResp.Schema
 
 	nullModel := res.PolicyResourceModel{
-		Metalake:     types.StringNull(),
-		ResourceType: types.StringNull(),
-		Resource:     types.StringNull(),
-		Name:         types.StringNull(),
-		Effect:       types.StringNull(),
-		Condition:    types.StringNull(),
-		Object:       types.StringNull(),
-		Actions:      types.ListNull(types.StringType),
-		Subjects:     types.ListNull(types.StringType),
-		Properties:   types.MapNull(types.StringType),
-		Audit:        types.ObjectNull(res.AuditAttrTypes),
+		Metalake:             types.StringNull(),
+		Name:                 types.StringNull(),
+		Comment:              types.StringNull(),
+		PolicyType:           types.StringNull(),
+		Enabled:              types.BoolNull(),
+		SupportedObjectTypes: types.ListNull(types.StringType),
+		Properties:           types.MapNull(types.StringType),
+		CustomRules:          types.MapNull(types.StringType),
+		Audit:                types.ObjectNull(res.AuditAttrTypes),
 	}
 	nullObj, diags := types.ObjectValueFrom(ctx, schemaObj.Type().(types.ObjectType).AttributeTypes(), nullModel)
 	if diags.HasError() {
@@ -135,7 +151,7 @@ func TestPolicyResource_ImportState(t *testing.T) {
 	}
 
 	req := resource.ImportStateRequest{
-		ID: "my_metalake.catalogs.my_catalog.my_policy",
+		ID: "my_metalake.my_policy",
 	}
 	resp := &resource.ImportStateResponse{
 		State: tfsdk.State{Schema: schemaObj, Raw: rawVal},
@@ -160,17 +176,15 @@ func TestPolicyResource_ImportState_Invalid(t *testing.T) {
 	schemaObj := schemaResp.Schema
 
 	nullModel := res.PolicyResourceModel{
-		Metalake:     types.StringNull(),
-		ResourceType: types.StringNull(),
-		Resource:     types.StringNull(),
-		Name:         types.StringNull(),
-		Effect:       types.StringNull(),
-		Condition:    types.StringNull(),
-		Object:       types.StringNull(),
-		Actions:      types.ListNull(types.StringType),
-		Subjects:     types.ListNull(types.StringType),
-		Properties:   types.MapNull(types.StringType),
-		Audit:        types.ObjectNull(res.AuditAttrTypes),
+		Metalake:             types.StringNull(),
+		Name:                 types.StringNull(),
+		Comment:              types.StringNull(),
+		PolicyType:           types.StringNull(),
+		Enabled:              types.BoolNull(),
+		SupportedObjectTypes: types.ListNull(types.StringType),
+		Properties:           types.MapNull(types.StringType),
+		CustomRules:          types.MapNull(types.StringType),
+		Audit:                types.ObjectNull(res.AuditAttrTypes),
 	}
 	nullObj, diags := types.ObjectValueFrom(ctx, schemaObj.Type().(types.ObjectType).AttributeTypes(), nullModel)
 	if diags.HasError() {
@@ -182,7 +196,7 @@ func TestPolicyResource_ImportState_Invalid(t *testing.T) {
 	}
 
 	req := resource.ImportStateRequest{
-		ID: "too.few.dots",
+		ID: "no_dots_here",
 	}
 	resp := &resource.ImportStateResponse{
 		State: tfsdk.State{Schema: schemaObj, Raw: rawVal},
@@ -218,18 +232,16 @@ func TestPolicyResource_Delete(t *testing.T) {
 	schemaObj := schemaResp.Schema
 
 	stateModel := res.PolicyResourceModel{
-		ID:           types.StringValue("test_metalake.catalogs.test_catalog.test_policy"),
-		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
-		Resource:     types.StringValue("test_catalog"),
-		Name:         types.StringValue("test_policy"),
-		Effect:       types.StringValue("allow"),
-		Condition:    types.StringNull(),
-		Object:       types.StringNull(),
-		Actions:      types.ListNull(types.StringType),
-		Subjects:     types.ListNull(types.StringType),
-		Properties:   types.MapNull(types.StringType),
-		Audit:        types.ObjectNull(res.AuditAttrTypes),
+		ID:                   types.StringValue("test_metalake.test_policy"),
+		Metalake:             types.StringValue("test_metalake"),
+		Name:                 types.StringValue("test_policy"),
+		Comment:              types.StringNull(),
+		PolicyType:           types.StringValue("custom"),
+		Enabled:              types.BoolValue(true),
+		SupportedObjectTypes: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("SCHEMA")}),
+		Properties:           types.MapNull(types.StringType),
+		CustomRules:          types.MapNull(types.StringType),
+		Audit:                types.ObjectNull(res.AuditAttrTypes),
 	}
 
 	stateObj, diags := types.ObjectValueFrom(ctx, schemaObj.Type().(types.ObjectType).AttributeTypes(), stateModel)

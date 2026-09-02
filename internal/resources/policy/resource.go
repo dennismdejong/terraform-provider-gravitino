@@ -8,16 +8,20 @@ import (
 	"github.com/gravitino/terraform-provider-gravitino/internal/client"
 	"github.com/gravitino/terraform-provider-gravitino/internal/models"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -38,18 +42,16 @@ func (r *PolicyResource) SetClient(c *client.Client) {
 }
 
 type PolicyResourceModel struct {
-	ID           types.String `tfsdk:"id"`
-	Metalake     types.String `tfsdk:"metalake"`
-	ResourceType types.String `tfsdk:"resource_type"`
-	Resource     types.String `tfsdk:"resource"`
-	Name         types.String `tfsdk:"name"`
-	Condition    types.String `tfsdk:"condition"`
-	Effect       types.String `tfsdk:"effect"`
-	Actions      types.List   `tfsdk:"actions"`
-	Subjects     types.List   `tfsdk:"subjects"`
-	Object       types.String `tfsdk:"object"`
-	Properties   types.Map    `tfsdk:"properties"`
-	Audit        types.Object `tfsdk:"audit"`
+	ID                   types.String `tfsdk:"id"`
+	Metalake             types.String `tfsdk:"metalake"`
+	Name                 types.String `tfsdk:"name"`
+	Comment              types.String `tfsdk:"comment"`
+	PolicyType           types.String `tfsdk:"policy_type"`
+	Enabled              types.Bool   `tfsdk:"enabled"`
+	SupportedObjectTypes types.List   `tfsdk:"supported_object_types"`
+	Properties           types.Map    `tfsdk:"properties"`
+	CustomRules          types.Map    `tfsdk:"custom_rules"`
+	Audit                types.Object `tfsdk:"audit"`
 }
 
 var AuditAttrTypes = map[string]attr.Type{
@@ -86,57 +88,60 @@ func (r *PolicyResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				Description: "Composite identifier in the format 'metalake.resource_type.resource.policy_name'.",
+				Description: "Composite identifier in the format 'metalake.policy_name'.",
 			},
 			"metalake": schema.StringAttribute{
 				Required:    true,
 				Description: "The metalake name.",
 			},
-			"resource_type": schema.StringAttribute{
-				Required:    true,
-				Description: "The metadata object resource type. Must be one of: metalakes, catalogs, schemas, tables, filesets, topics.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("metalakes", "catalogs", "schemas", "tables", "filesets", "topics", "models"),
-				},
-			},
-			"resource": schema.StringAttribute{
-				Required:    true,
-				Description: "The metadata object name.",
-			},
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The policy name.",
 			},
-			"condition": schema.StringAttribute{
+			"comment": schema.StringAttribute{
 				Optional:    true,
-				Description: "The policy condition expression.",
+				Computed:    true,
+				Description: "A comment or description for the policy.",
 			},
-			"effect": schema.StringAttribute{
-				Required:    true,
-				Description: "The policy effect. Must be one of: allow, deny.",
+			"policy_type": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("custom"),
+				Description: "The policy type. Only 'custom' is currently supported.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "deny"),
+					stringvalidator.OneOf("custom"),
 				},
 			},
-			"actions": schema.ListAttribute{
+			"enabled": schema.BoolAttribute{
 				Optional:    true,
-				ElementType: types.StringType,
-				Description: "The list of actions this policy applies to.",
+				Computed:    true,
+				Default:     booldefault.StaticBool(true),
+				Description: "Whether the policy is enabled.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"subjects": schema.ListAttribute{
-				Optional:    true,
+			"supported_object_types": schema.ListAttribute{
+				Required:    true,
 				ElementType: types.StringType,
-				Description: "The list of subjects this policy applies to.",
-			},
-			"object": schema.StringAttribute{
-				Optional:    true,
-				Description: "The policy target object.",
+				Description: "The object types this policy supports. One or more of: CATALOG, SCHEMA, TABLE, FILESET, TOPIC, MODEL.",
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(
+						stringvalidator.OneOf("CATALOG", "SCHEMA", "TABLE", "FILESET", "TOPIC", "MODEL"),
+					),
+				},
 			},
 			"properties": schema.MapAttribute{
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
 				Description: "A map of key-value properties for the policy.",
+			},
+			"custom_rules": schema.MapAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: types.StringType,
+				Description: "A map of custom rules for the policy. Non-string values must be encoded as JSON strings.",
 			},
 			"audit": schema.ObjectAttribute{
 				Computed:       true,
@@ -156,27 +161,15 @@ func (r *PolicyResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	tflog.Debug(ctx, "Creating policy", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
 
-	createReq := &models.PolicyCreateRequest{
-		Name:       plan.Name.ValueString(),
-		Effect:     plan.Effect.ValueString(),
-		Condition:  plan.Condition.ValueString(),
-		Object:     plan.Object.ValueString(),
-		Actions:    listFromTF(plan.Actions),
-		Subjects:   listFromTF(plan.Subjects),
-		Properties: mapFromTF(plan.Properties),
-	}
+	createReq := buildPolicyCreateRequest(plan)
 
-	metalake := plan.Metalake.ValueString()
-	resourceType := plan.ResourceType.ValueString()
-	resourceName := plan.Resource.ValueString()
-
-	result, err := r.client.CreatePolicy(metalake, resourceType, resourceName, createReq)
+	result, err := r.client.CreatePolicy(plan.Metalake.ValueString(), createReq)
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("creating policy", plan.Name.ValueString(), err)...)
 		return
 	}
 
-	setStateFromPolicy(ctx, &resp.Diagnostics, metalake, resourceType, resourceName, &result.Policy, &plan)
+	setStateFromPolicy(ctx, &resp.Diagnostics, plan.Metalake.ValueString(), &result.Policy, &plan)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -195,11 +188,7 @@ func (r *PolicyResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	tflog.Debug(ctx, "Reading policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
-	metalake := state.Metalake.ValueString()
-	resourceType := state.ResourceType.ValueString()
-	resourceName := state.Resource.ValueString()
-
-	result, err := r.client.GetPolicy(metalake, resourceType, resourceName, state.Name.ValueString())
+	result, err := r.client.GetPolicy(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
 		if client.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
@@ -209,7 +198,7 @@ func (r *PolicyResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	setStateFromPolicy(ctx, &resp.Diagnostics, metalake, resourceType, resourceName, &result.Policy, &state)
+	setStateFromPolicy(ctx, &resp.Diagnostics, state.Metalake.ValueString(), &result.Policy, &state)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -225,44 +214,48 @@ func (r *PolicyResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	tflog.Debug(ctx, "Updating policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
-
-	var updates []interface{}
-
 	metalake := plan.Metalake.ValueString()
-	resourceType := plan.ResourceType.ValueString()
-	resourceName := plan.Resource.ValueString()
+	name := state.Name.ValueString()
+
+	tflog.Debug(ctx, "Updating policy", map[string]interface{}{"metalake": metalake, "name": name})
 
 	if !plan.Name.Equal(state.Name) {
-		updates = append(updates, models.NewRenamePolicyRequest(plan.Name.ValueString()))
-		state.Name = plan.Name
+		resp.Diagnostics.AddError(
+			"Policy name update not supported",
+			"Renaming a policy is not supported. The resource must be recreated.",
+		)
+		return
 	}
 
-	oldProps := mapFromTF(state.Properties)
-	newProps := mapFromTF(plan.Properties)
+	commentChanged := !plan.Comment.Equal(state.Comment)
+	contentChanged := !policyContentEqual(plan, state)
+	enabledChanged := !plan.Enabled.Equal(state.Enabled)
 
-	for k, v := range newProps {
-		oldV, exists := oldProps[k]
-		if !exists || oldV != v {
-			updates = append(updates, models.NewSetPolicyPropertyRequest(k, v))
-		}
-	}
+	updated := false
 
-	for k := range oldProps {
-		if _, exists := newProps[k]; !exists {
-			updates = append(updates, models.NewRemovePolicyPropertyRequest(k))
-		}
-	}
-
-	if len(updates) > 0 {
-		result, err := r.client.UpdatePolicy(metalake, resourceType, resourceName, state.Name.ValueString(), updates)
+	if commentChanged || contentChanged {
+		updateReq := buildPolicyCreateRequest(plan)
+		result, err := r.client.UpdatePolicy(metalake, name, updateReq)
 		if err != nil {
-			resp.Diagnostics.Append(client.NewResourceError("updating policy", state.Name.ValueString(), err)...)
+			resp.Diagnostics.Append(client.NewResourceError("updating policy", name, err)...)
 			return
 		}
-		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, resourceType, resourceName, &result.Policy, &plan)
-	} else {
-		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, resourceType, resourceName, nil, &plan)
+		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, &result.Policy, &plan)
+		updated = true
+	}
+
+	if enabledChanged {
+		result, err := r.client.SetPolicyEnabled(metalake, name, plan.Enabled.ValueBool())
+		if err != nil {
+			resp.Diagnostics.Append(client.NewResourceError("updating policy enabled state", name, err)...)
+			return
+		}
+		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, &result.Policy, &plan)
+		updated = true
+	}
+
+	if !updated {
+		setStateFromPolicy(ctx, &resp.Diagnostics, metalake, nil, &plan)
 	}
 
 	if resp.Diagnostics.HasError() {
@@ -271,7 +264,7 @@ func (r *PolicyResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 
-	tflog.Debug(ctx, "Updated policy", map[string]interface{}{"metalake": plan.Metalake.ValueString(), "name": plan.Name.ValueString()})
+	tflog.Debug(ctx, "Updated policy", map[string]interface{}{"metalake": metalake, "name": plan.Name.ValueString()})
 }
 
 func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -283,12 +276,7 @@ func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 	tflog.Debug(ctx, "Deleting policy", map[string]interface{}{"metalake": state.Metalake.ValueString(), "name": state.Name.ValueString()})
 
-	_, err := r.client.DeletePolicy(
-		state.Metalake.ValueString(),
-		state.ResourceType.ValueString(),
-		state.Resource.ValueString(),
-		state.Name.ValueString(),
-	)
+	_, err := r.client.DeletePolicy(state.Metalake.ValueString(), state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.Append(client.NewResourceError("deleting policy", state.Name.ValueString(), err)...)
 		return
@@ -298,48 +286,105 @@ func (r *PolicyResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *PolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.SplitN(req.ID, ".", 4)
-	if len(parts) != 4 {
+	idx := strings.LastIndex(req.ID, ".")
+	if idx == -1 {
 		resp.Diagnostics.AddError(
 			"Invalid import ID",
-			fmt.Sprintf("Expected 'metalake.resource_type.resource.policy_name', got: %s", req.ID),
+			fmt.Sprintf("Expected 'metalake.policy_name', got: %s", req.ID),
 		)
 		return
 	}
 
-	metalake, resourceType, resourceName, name := parts[0], parts[1], parts[2], parts[3]
+	metalake := req.ID[:idx]
+	name := req.ID[idx+1:]
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("metalake"), metalake)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("resource_type"), resourceType)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("resource"), resourceName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 }
 
-func setStateFromPolicy(ctx context.Context, diags *diag.Diagnostics, metalake, resourceType, resourceName string, policy *models.Policy, model *PolicyResourceModel) {
+func buildPolicyCreateRequest(model PolicyResourceModel) *models.PolicyCreateRequest {
+	return &models.PolicyCreateRequest{
+		Name:       model.Name.ValueString(),
+		Comment:    model.Comment.ValueString(),
+		PolicyType: model.PolicyType.ValueString(),
+		Enabled:    model.Enabled.ValueBool(),
+		Content: &models.PolicyContent{
+			SupportedObjectTypes: listFromTF(model.SupportedObjectTypes),
+			Properties:           mapFromTF(model.Properties),
+			CustomRules:          mapFromTF(model.CustomRules),
+		},
+	}
+}
+
+func policyContentEqual(plan, state PolicyResourceModel) bool {
+	if !stringSlicesEqual(listFromTF(plan.SupportedObjectTypes), listFromTF(state.SupportedObjectTypes)) {
+		return false
+	}
+	if !mapsEqual(mapFromTF(plan.Properties), mapFromTF(state.Properties)) {
+		return false
+	}
+	if !mapsEqual(mapFromTF(plan.CustomRules), mapFromTF(state.CustomRules)) {
+		return false
+	}
+	return true
+}
+
+func stringSlicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	set := make(map[string]int, len(a))
+	for _, v := range a {
+		set[v]++
+	}
+	for _, v := range b {
+		set[v]--
+		if set[v] < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func mapsEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
+			return false
+		}
+	}
+	return true
+}
+
+func setStateFromPolicy(ctx context.Context, diags *diag.Diagnostics, metalake string, policy *models.Policy, model *PolicyResourceModel) {
 	if policy != nil {
 		model.Name = types.StringValue(policy.Name)
-		model.Effect = types.StringValue(policy.Effect)
-		model.Condition = types.StringValue(policy.Condition)
-		model.Object = types.StringValue(policy.Object)
-		model.ID = types.StringValue(metalake + "." + resourceType + "." + resourceName + "." + policy.Name)
+		model.Comment = types.StringValue(policy.Comment)
+		model.PolicyType = types.StringValue(policy.PolicyType)
+		model.Enabled = types.BoolValue(policy.Enabled)
+		model.ID = types.StringValue(metalake + "." + policy.Name)
 
-		actions, d := types.ListValueFrom(ctx, types.StringType, policy.Actions)
-		diags.Append(d...)
-		if !diags.HasError() {
-			model.Actions = actions
-		}
+		if policy.Content != nil {
+			typesList, d := types.ListValueFrom(ctx, types.StringType, policy.Content.SupportedObjectTypes)
+			diags.Append(d...)
+			if !diags.HasError() {
+				model.SupportedObjectTypes = typesList
+			}
 
-		subjects, d := types.ListValueFrom(ctx, types.StringType, policy.Subjects)
-		diags.Append(d...)
-		if !diags.HasError() {
-			model.Subjects = subjects
-		}
+			props, d := types.MapValueFrom(ctx, types.StringType, policy.Content.Properties)
+			diags.Append(d...)
+			if !diags.HasError() {
+				model.Properties = props
+			}
 
-		props, d := types.MapValueFrom(ctx, types.StringType, policy.Properties)
-		diags.Append(d...)
-		if !diags.HasError() {
-			model.Properties = props
+			rules, d := types.MapValueFrom(ctx, types.StringType, policy.Content.CustomRules)
+			diags.Append(d...)
+			if !diags.HasError() {
+				model.CustomRules = rules
+			}
 		}
 
 		if policy.Audit != nil {
@@ -350,12 +395,10 @@ func setStateFromPolicy(ctx context.Context, diags *diag.Diagnostics, metalake, 
 			}
 		}
 	} else {
-		model.ID = types.StringValue(metalake + "." + resourceType + "." + resourceName + "." + model.Name.ValueString())
+		model.ID = types.StringValue(metalake + "." + model.Name.ValueString())
 	}
 
 	model.Metalake = types.StringValue(metalake)
-	model.ResourceType = types.StringValue(resourceType)
-	model.Resource = types.StringValue(resourceName)
 }
 
 func auditToObjectValue(ctx context.Context, audit *models.Audit) (types.Object, diag.Diagnostics) {
