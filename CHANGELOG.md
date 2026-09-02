@@ -1,3 +1,44 @@
+## 0.4.0 (2026-09-02)
+
+BREAKING CHANGES:
+- **Policy resource rewritten** for the Gravitino 1.3.0 policy model. The old
+  `effect`, `actions`, `subjects`, `condition`, and `object` fields are replaced
+  by the new `policy_type`, `enabled`, `supported_object_types`, `properties`,
+  and `custom_rules` schema.
+
+FEATURES:
+- **Built-in IDP management:** New `gravitino_idp_user` and `gravitino_idp_group`
+  resources and data sources for local authentication (password-based users,
+  group membership, enable/disable).
+- **Model versions:** New `gravitino_model_version` resource with `gravitino_model_version`
+  and `gravitino_model_versions` data sources (link, list, get, update, delete,
+  aliases, and URI resolution — 10 endpoints).
+- **Job templates:** New `gravitino_job_template` resource with `gravitino_job_template`
+  and `gravitino_job_templates` data sources (register/get/update/delete).
+- **Secrets:** New `gravitino_secrets` data source exposing resolved plaintext
+  secrets for a metadata object.
+- **Bulk operations:** Client support for bulk user/group add/remove endpoints.
+
+ENHANCEMENTS:
+- **Access control coverage:** `gravitino_user`, `gravitino_group`, `gravitino_role`,
+  and `gravitino_owner` resources with get/list data sources.
+- **Centralized error handling:** New `client.NewResourceError` and
+  `client.IsNotFoundError` helpers used consistently across all resources.
+- **Structured logging:** `tflog.Debug` at all CRUD boundaries.
+- **Enum validators:** `stringvalidator.OneOf` for all enum fields, backed by
+  shared constants in `internal/models/privilege_names.go`.
+- **Docker Compose acceptance tests** plus CI acceptance job and Makefile targets.
+
+FIXES:
+- Corrected REST paths to match the Gravitino 1.3.0 OpenAPI specification:
+  - `/principal` → `/authn/me`
+  - `/health/liveness` → `/health/live`, `/health/readiness` → `/health/ready`
+  - credentials and statistics now use the `/objects/{type}/{fullName}` path
+  - job runs moved to `/jobs/runs`, removed obsolete pause/resume
+  - catalog `testConnection` path corrected
+  - role privilege override now a single bulk call at `/permissions/roles/{role}`
+- Added the `COLUMN` metadata object type.
+
 ## 0.3.1 (2026-07-27)
 
 BREAKING CHANGES: None
