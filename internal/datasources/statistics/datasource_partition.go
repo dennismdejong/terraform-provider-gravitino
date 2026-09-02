@@ -134,9 +134,8 @@ func (d *PartitionStatisticsDataSource) Read(ctx context.Context, req datasource
 
 	result, err := d.client.ListPartitionStatistics(
 		config.Metalake.ValueString(),
-		config.Catalog.ValueString(),
-		config.Schema.ValueString(),
-		config.Table.ValueString(),
+		"TABLE",
+		fmt.Sprintf("%s.%s.%s", config.Catalog.ValueString(), config.Schema.ValueString(), config.Table.ValueString()),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to list partition statistics", err.Error())

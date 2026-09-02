@@ -12,12 +12,12 @@ func (c *Client) GetHealth() (*models.HealthResponse, error) {
 
 func (c *Client) GetLiveness() (*models.HealthResponse, error) {
 	var result models.HealthResponse
-	err := c.Get("/health/liveness", &result)
+	err := c.Get("/health/live", &result)
 	return &result, err
 }
 
 func (c *Client) GetReadiness() (*models.HealthResponse, error) {
 	var result models.HealthResponse
-	err := c.Get("/health/readiness", &result)
+	err := c.Get("/health/ready", &result)
 	return &result, err
 }

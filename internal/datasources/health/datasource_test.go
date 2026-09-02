@@ -132,7 +132,7 @@ func TestLivenessDataSource_Read(t *testing.T) {
 		},
 	}
 
-	server := setupHealthServer(t, "/api/health/liveness", "alive", checks)
+	server := setupHealthServer(t, "/api/health/live", "alive", checks)
 	defer server.Close()
 
 	c, _ := client.New(server.URL, nil)
@@ -209,7 +209,7 @@ func TestReadinessDataSource_Read(t *testing.T) {
 		},
 	}
 
-	server := setupHealthServer(t, "/api/health/readiness", "ready", checks)
+	server := setupHealthServer(t, "/api/health/ready", "ready", checks)
 	defer server.Close()
 
 	c, _ := client.New(server.URL, nil)

@@ -1,6 +1,5 @@
 data "gravitino_statistics" "example" {
-  metalake = "example_metalake"
-  catalog  = "hive_catalog"
-  schema   = "example_schema"
-  table    = "users"
+  metalake      = "example_metalake"
+  resource_type = "TABLE"
+  resource      = "hive_catalog.example_schema.users"
 }

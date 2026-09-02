@@ -29,8 +29,8 @@ func TestPrincipalDataSource_Schema(t *testing.T) {
 
 func TestPrincipalDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/principal" {
-			t.Errorf("expected path /principal, got %s", r.URL.Path)
+		if r.URL.Path != "/api/authn/me" {
+			t.Errorf("expected path /api/authn/me, got %s", r.URL.Path)
 		}
 
 		resp := models.PrincipalResponse{

@@ -71,6 +71,7 @@ const (
 	ObjectTypeCatalog     = "CATALOG"
 	ObjectTypeSchema      = "SCHEMA"
 	ObjectTypeTable       = "TABLE"
+	ObjectTypeColumn      = "COLUMN"
 	ObjectTypeFileset     = "FILESET"
 	ObjectTypeTopic       = "TOPIC"
 	ObjectTypeRole        = "ROLE"
@@ -113,5 +114,17 @@ var OwnerObjectTypes = []string{
 	ObjectTypeTable,
 	ObjectTypeFileset,
 	ObjectTypeTopic,
+	ObjectTypeRole,
+}
+
+var StatisticsObjectTypes = []string{
+	ObjectTypeMetalake,
+	ObjectTypeCatalog,
+	ObjectTypeSchema,
+	ObjectTypeTable,
+	ObjectTypeColumn,
+	ObjectTypeFileset,
+	ObjectTypeTopic,
+	ObjectTypeModel,
 	ObjectTypeRole,
 }

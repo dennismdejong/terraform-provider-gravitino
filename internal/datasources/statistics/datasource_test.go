@@ -29,7 +29,7 @@ func TestStatisticsDataSource_Schema(t *testing.T) {
 
 func TestStatisticsDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/catalogs/test_catalog/statistics"
+		expectedPath := "/api/metalakes/test_metalake/objects/CATALOG/test_catalog/statistics"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}
@@ -70,7 +70,7 @@ func TestStatisticsDataSource_Read(t *testing.T) {
 
 	configModel := ds.StatisticsDataSourceModel{
 		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
+		ResourceType: types.StringValue("CATALOG"),
 		Resource:     types.StringValue("test_catalog"),
 		Statistics:   types.ListNull(statItemObjType),
 	}
@@ -113,7 +113,7 @@ func TestPartitionStatisticsDataSource_Schema(t *testing.T) {
 
 func TestPartitionStatisticsDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/catalogs/test_catalog/schemas/test_schema/tables/test_table/partition-statistics"
+		expectedPath := "/api/metalakes/test_metalake/objects/TABLE/test_catalog.test_schema.test_table/statistics/partitions"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}

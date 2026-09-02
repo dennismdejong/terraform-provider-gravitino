@@ -13,10 +13,9 @@ description: |-
 
 ```terraform
 data "gravitino_statistics" "example" {
-  metalake = "example_metalake"
-  catalog  = "hive_catalog"
-  schema   = "example_schema"
-  table    = "users"
+  metalake      = "example_metalake"
+  resource_type = "TABLE"
+  resource      = "hive_catalog.example_schema.users"
 }
 ```
 
@@ -27,7 +26,7 @@ data "gravitino_statistics" "example" {
 
 - `metalake` (String) The metalake name.
 - `resource` (String) The resource name.
-- `resource_type` (String) The resource type (e.g. catalogs, schemas, tables).
+- `resource_type` (String) The metadata object type (e.g. CATALOG, SCHEMA, TABLE, COLUMN, FILESET, TOPIC, MODEL, ROLE).
 
 ### Read-Only
 

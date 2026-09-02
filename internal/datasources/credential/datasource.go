@@ -9,7 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 )
 
 var _ datasource.DataSource = &CredentialsDataSource{}
@@ -64,7 +66,10 @@ func (d *CredentialsDataSource) Schema(_ context.Context, _ datasource.SchemaReq
 			},
 			"resource_type": schema.StringAttribute{
 				Required:    true,
-				Description: "The resource type (e.g. catalogs, schemas, tables).",
+				Description: "The metadata object type (e.g. CATALOG, SCHEMA, TABLE, COLUMN, FILESET, TOPIC, MODEL, ROLE).",
+				Validators: []validator.String{
+					stringvalidator.OneOf(models.StatisticsObjectTypes...),
+				},
 			},
 			"resource": schema.StringAttribute{
 				Required:    true,

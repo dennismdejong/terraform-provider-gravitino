@@ -29,7 +29,7 @@ func TestCredentialsDataSource_Schema(t *testing.T) {
 
 func TestCredentialsDataSource_Read(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		expectedPath := "/api/metalakes/test_metalake/catalogs/test_catalog/credentials"
+		expectedPath := "/api/metalakes/test_metalake/objects/CATALOG/test_catalog/credentials"
 		if r.URL.Path != expectedPath {
 			t.Errorf("expected path %s, got %s", expectedPath, r.URL.Path)
 		}
@@ -66,7 +66,7 @@ func TestCredentialsDataSource_Read(t *testing.T) {
 
 	configModel := ds.CredentialsDataSourceModel{
 		Metalake:     types.StringValue("test_metalake"),
-		ResourceType: types.StringValue("catalogs"),
+		ResourceType: types.StringValue("CATALOG"),
 		Resource:     types.StringValue("test_catalog"),
 	}
 

@@ -9,16 +9,16 @@ import (
 
 func (c *Client) ListStatistics(metalake, resourceType, resource string) (*models.StatisticsResponse, error) {
 	var result models.StatisticsResponse
-	path := fmt.Sprintf("/metalakes/%s/%s/%s/statistics",
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics",
 		url.PathEscape(metalake), url.PathEscape(resourceType), url.PathEscape(resource))
 	err := c.Get(path, &result)
 	return &result, err
 }
 
-func (c *Client) ListPartitionStatistics(metalake, catalog, schema, table string) (*models.PartitionStatisticsResponse, error) {
+func (c *Client) ListPartitionStatistics(metalake, resourceType, resource string) (*models.PartitionStatisticsResponse, error) {
 	var result models.PartitionStatisticsResponse
-	path := fmt.Sprintf("/metalakes/%s/catalogs/%s/schemas/%s/tables/%s/partition-statistics",
-		url.PathEscape(metalake), url.PathEscape(catalog), url.PathEscape(schema), url.PathEscape(table))
+	path := fmt.Sprintf("/metalakes/%s/objects/%s/%s/statistics/partitions",
+		url.PathEscape(metalake), url.PathEscape(resourceType), url.PathEscape(resource))
 	err := c.Get(path, &result)
 	return &result, err
 }
